@@ -44,9 +44,9 @@ We use labels to categorize and prioritize issues. Here are some of the key labe
 
 For internal tracking and management, we categorize issues based on applications within the MGSM service/platform. This helps our development teams quickly identify and address issues in their relevant areas. The main components and apps include:
 
-- **web**: The MGSM web interface, covering all front-end aspects.
-- **api**: The MGSM API, including backend services and integrations.
-- **cms**: The content management system utilized within MGSM.
+- **apps/web**: The MGSM web interface, covering all front-end aspects.
+- **apps/api**: The MGSM API, including backend services and integrations.
+- **apps/cms**: The content management system utilized within MGSM.
 
 ### 📦 Packages
 
@@ -68,16 +68,16 @@ We also categorize issues by specific packages within the MGSM platform to strea
 
 In addition to components and packages, issues are categorized by functional areas to address specific aspects of the platform:
 
-- **billing**: The billing and payment processing systems.
-- **notifications**: Email, SMS, Discord, or in-app notifications.
-- **admin**: The administrative dashboard and backend tools.
-- **authentication**: Issues related to user authentication and authorization processes.
-- **performance**: Problems or requests concerning system performance and optimization.
-- **security**: Concerns related to the security of the platform, including vulnerabilities and compliance.
-- **analytics**: Issues involving data analysis, reporting, and metrics.
-- **integration**: Problems or requests related to integrating with third-party services or systems.
-- **usability**: Feedback on user experience and usability improvements.
-- **support**: Issues related to customer support and help resources.
+- **area/billing**: The billing and payment processing systems.
+- **area/notifications**: Email, SMS, Discord, or in-app notifications.
+- **area/admin**: The administrative dashboard and backend tools.
+- **area/authentication**: Issues related to user authentication and authorization processes.
+- **area/performance**: Problems or requests concerning system performance and optimization.
+- **area/security**: Concerns related to the security of the platform, including vulnerabilities and compliance.
+- **area/analytics**: Issues involving data analysis, reporting, and metrics.
+- **area/integration**: Problems or requests related to integrating with third-party services or systems.
+- **area/usability**: Feedback on user experience and usability improvements.
+- **area/support**: Issues related to customer support and help resources.
 
 ## 💬 Reporting Issues
 
