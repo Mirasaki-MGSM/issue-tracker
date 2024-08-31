@@ -4,18 +4,18 @@ Welcome to the MGSM (Game Server Monetization) platform's public issue tracker. 
 
 ## 🔖 Table of Contents
 
-- [About MGSM](#about-mgsm)
-- [How to Use the Issue Tracker](#how-to-use-the-issue-tracker)
-  - [Issue Labels](#issue-labels)
-  - [Applications](#applications)
-  - [Packages](#packages)
-  - [Functional Areas](#functional-areas)
-- [Reporting Issues](#reporting-issues)
-- [Feature Requests](#feature-requests)
-- [Contributing](#contributing)
-  - [Code of Conduct](#code-of-conduct)
-  - [License](#license)
-- [Contact](#contact)
+- [About MGSM](#-about-mgsm)
+- [How to Use the Issue Tracker](#-how-to-use-the-issue-tracker)
+  - [Issue Labels](#%EF%B8%8F-issue-labels)
+  - [Applications](#-applications)
+  - [Packages](#-packages)
+  - [Functional Areas](#%EF%B8%8F-functional-areas)
+- [Reporting Issues](#-reporting-issues)
+- [Feature Requests](#-feature-requests)
+- [Contributing](#-contributing)
+  - [Code of Conduct](#-code-of-conduct)
+  - [License](#-license)
+- [Contact](#-contact)
 
 ## 🚀 About MGSM
 
