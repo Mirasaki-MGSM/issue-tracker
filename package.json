@@ -28,7 +28,7 @@
     "email": "me@mirasaki.dev",
     "url": "https://mirasaki.dev"
   },
-  "license": "MIT",
+  "license": "GPL-3.0-only",
   "bugs": {
     "url": "https://github.com/Mirasaki-MGSM/issue-tracker/issues"
   },
