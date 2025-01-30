@@ -15,7 +15,12 @@ export type IssueAction = 'assigned'
   | 'unlocked'
   | 'unpinned'
 
-export type OtherAction = 'commented' | 'label-created' | 'label-deleted' | 'label-edited';
+export type OtherAction = 'issue-comment-created'
+  | 'issue-comment-deleted'
+  | 'issue-comment-edited'
+  | 'label-created'
+  | 'label-deleted'
+  | 'label-edited';
 
 export type PayloadAction = IssueAction | OtherAction;
 

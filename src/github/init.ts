@@ -2,6 +2,8 @@ import Express from 'express'
 import bodyParser from 'body-parser'
 import { parsedEnv } from '../env'
 import crypto from 'crypto'
+import { GithubEventHandler } from './handler'
+import { IssueAction, OtherAction, PayloadAction } from '../types'
 
 const {
   EXPRESS_PORT,
@@ -14,7 +16,7 @@ const {
 
 export const initGitHub = () => {
   const app = Express()
-  
+
   app.use(bodyParser.json({ limit: '5mb' }))
   app.use(bodyParser.urlencoded({ extended: true }))
   app.use((_req, res, next) => {
@@ -54,8 +56,19 @@ export const initGitHub = () => {
       return;
     }
 
-    console.log('GitHub Webhook received:', req.body)
-    res.send({ message: 'Received' })
+    res.status(200).end()
+    
+    if ('comment' in req.body) {
+      GithubEventHandler.instance.handle(`issue-comment-${req.body.action}` as OtherAction, req.body)
+    }
+
+    if ('label' in req.body) {
+      GithubEventHandler.instance.handle(`label-${req.body.action}` as OtherAction, req.body)
+    }
+
+    if ('issue' in req.body) {
+      GithubEventHandler.instance.handle(req.body.action as IssueAction, req.body)
+    }
   })
 
   app.listen(EXPRESS_PORT, () => {
