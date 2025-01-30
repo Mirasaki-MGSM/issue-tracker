@@ -1,28 +1,29 @@
-export type IssueAction = 'assigned'
-  | 'closed'
-  | 'deleted'
-  | 'demilestoned'
-  | 'edited'
-  | 'labeled'
-  | 'locked'
-  | 'milestoned'
-  | 'opened'
-  | 'pinned'
-  | 'reopened'
-  | 'transferred'
-  | 'unassigned'
-  | 'unlabeled'
-  | 'unlocked'
-  | 'unpinned'
+export type IssueAction = 'issue-assigned'
+  | 'issue-closed'
+  | 'issue-deleted'
+  | 'issue-demilestoned'
+  | 'issue-edited'
+  | 'issue-labeled'
+  | 'issue-locked'
+  | 'issue-milestoned'
+  | 'issue-opened'
+  | 'issue-pinned'
+  | 'issue-reopened'
+  | 'issue-transferred'
+  | 'issue-unassigned'
+  | 'issue-unlabeled'
+  | 'issue-unlocked'
+  | 'issue-unpinned'
 
-export type OtherAction = 'issue-comment-created'
+export type IssueCommentAction = 'issue-comment-created'
   | 'issue-comment-deleted'
-  | 'issue-comment-edited'
-  | 'label-created'
+  | 'issue-comment-edited';
+
+export type LabelAction = 'label-created'
   | 'label-deleted'
   | 'label-edited';
 
-export type PayloadAction = IssueAction | OtherAction;
+export type PayloadAction = IssueAction | IssueCommentAction | LabelAction;
 
 export type IssuePayloadAction<T extends PayloadAction> =
   T extends 'commented'
@@ -177,7 +178,22 @@ export type Issue = {
 }
 
 export type IssuePayload = {
-  action: IssueAction;
+  action: 'assigned'
+    | 'closed'
+    | 'deleted'
+    | 'demilestoned'
+    | 'edited'
+    | 'labeled'
+    | 'locked'
+    | 'milestoned'
+    | 'opened'
+    | 'pinned'
+    | 'reopened'
+    | 'transferred'
+    | 'unassigned'
+    | 'unlabeled'
+    | 'unlocked'
+    | 'unpinned';
   assignee: Assignee | null;
   issue: Issue;
   repository: Repository;

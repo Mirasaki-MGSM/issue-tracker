@@ -3,7 +3,7 @@ import bodyParser from 'body-parser'
 import { parsedEnv } from '../env'
 import crypto from 'crypto'
 import { GithubEventHandler } from './handler'
-import { IssueAction, OtherAction, PayloadAction } from '../types'
+import { IssueAction, IssueCommentAction, LabelAction } from '../types'
 
 const {
   EXPRESS_PORT,
@@ -59,15 +59,15 @@ export const initGitHub = () => {
     res.status(200).end()
     
     if ('comment' in req.body) {
-      GithubEventHandler.instance.handle(`issue-comment-${req.body.action}` as OtherAction, req.body)
+      GithubEventHandler.instance.handle(`issue-comment-${req.body.action}` as IssueCommentAction, req.body)
     }
 
     if ('label' in req.body) {
-      GithubEventHandler.instance.handle(`label-${req.body.action}` as OtherAction, req.body)
+      GithubEventHandler.instance.handle(`label-${req.body.action}` as LabelAction, req.body)
     }
 
     if ('issue' in req.body) {
-      GithubEventHandler.instance.handle(req.body.action as IssueAction, req.body)
+      GithubEventHandler.instance.handle(`issue-${req.body.action}` as IssueAction, req.body)
     }
   })
 
