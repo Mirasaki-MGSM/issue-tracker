@@ -835,15 +835,13 @@ export class DiscordHandler {
     const thread = await DiscordHandler.getThread(payload.issue);
 
     await thread.send({
-      content: `🗑️ Issue deleted by ${payload.sender.login}.`,
+      content: `🗑️ Issue deleted by ${payload.sender.login}, deleting thread...`,
       allowedMentions: defaultAllowedMentions,
     });
 
-    return thread.edit({
-      archived: true,
-      locked: true,
-      reason: `Issue deleted by ${payload.sender.login}.`,
-    })
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    return thread.delete(`Issue deleted by ${payload.sender.login}.`)
   }
 
   public static async onIssueDemilestoned(payload: IssueDemilestonedPayload) {
