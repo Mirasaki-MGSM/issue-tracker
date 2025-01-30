@@ -28,6 +28,6 @@ RUN apk add --update dumb-init
 USER node
 WORKDIR /app
 COPY --chown=node:node --from=deps /app/node_modules ./app/node_modules
-COPY --chown=node:node --from=build /app/dist/src ./dist/
+COPY --chown=node:node --from=build /app/dist ./dist/
 COPY --chown=node:node --from=build /app/package.json ./
 CMD [ "dumb-init", "node", "/app/dist/index.js" ]
