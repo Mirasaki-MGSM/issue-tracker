@@ -183,6 +183,12 @@ export class DiscordHandler {
         console.log(`Discord client ready and logged in as ${c.user.username}.`)
         resolve(c)
       })
+      DiscordHandler.client.on('channelDelete', (channel) => {
+        if (channel.id === parsedEnv.DISCORD_CHANNEL_ID) {
+          console.error(`Forum channel with ID ${parsedEnv.DISCORD_CHANNEL_ID} was deleted. Exiting.`)
+          process.exit(1)
+        }
+      })
     });
   }
   
