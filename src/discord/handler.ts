@@ -221,10 +221,12 @@ export class DiscordHandler {
         owner: parsedEnv.GITHUB_REPO_OWNER,
         repo: parsedEnv.GITHUB_REPO_NAME,
         issue_id: issueId,
+      }).catch((e) => {
+        console.error(`Failed to fetch issue ${issueId} from GitHub API: ${e}`)
+        return { status: 404 }
       })
 
       if (issue.status === 404) {
-        console.error(`Failed to fetch issue ${issueId} from GitHub API.`)
         return;
       }
 
@@ -258,6 +260,9 @@ export class DiscordHandler {
         owner: parsedEnv.GITHUB_REPO_OWNER,
         repo: parsedEnv.GITHUB_REPO_NAME,
         issue_id: issueId,
+      }).catch((e) => {
+        console.error(`Failed to fetch comments for issue ${issueId} from GitHub API: ${e}`)
+        return { status: 404 }
       })
 
       if (comments.status === 404) {
@@ -306,10 +311,12 @@ export class DiscordHandler {
           owner: parsedEnv.GITHUB_REPO_OWNER,
           repo: parsedEnv.GITHUB_REPO_NAME,
           issue_id: issueId,
+        }).catch((e) => {
+          console.error(`Failed to fetch issue ${issueId} from GitHub API: ${e}`)
+          return { status: 404 }
         })
 
         if (issue.status === 404) {
-          console.error(`Failed to fetch issue ${issueId} from GitHub API.`)
           return;
         }
 
@@ -327,6 +334,9 @@ export class DiscordHandler {
         owner: parsedEnv.GITHUB_REPO_OWNER,
         repo: parsedEnv.GITHUB_REPO_NAME,
         issue_id: issueId,
+      }).catch((e) => {
+        console.error(`Failed to fetch comments for issue ${issueId} from GitHub API: ${e}`)
+        return { status: 404 }
       })
 
       if (comments.status === 404) {
@@ -395,10 +405,12 @@ export class DiscordHandler {
       //       owner: parsedEnv.GITHUB_REPO_OWNER,
       //       repo: parsedEnv.GITHUB_REPO_NAME,
       //       issue_id: issueId,
+      //     }).catch((e) => {
+      //       console.error(`Failed to fetch issue ${issueId} from GitHub API: ${e}`)
+      //       return { status: 404 }
       //     })
 
       //     if (issue.status === 404) {
-      //       console.error(`Failed to fetch issue ${issueId} from GitHub API.`)
       //       return;
       //     }
 
@@ -425,10 +437,12 @@ export class DiscordHandler {
           owner: parsedEnv.GITHUB_REPO_OWNER,
           repo: parsedEnv.GITHUB_REPO_NAME,
           issue_id: issueId,
+        }).catch((e) => {
+          console.error(`Failed to fetch issue ${issueId} from GitHub API: ${e}`)
+          return { status: 404 }
         })
 
         if (issue.status === 404) {
-          console.error(`Failed to fetch issue ${issueId} from GitHub API.`)
           return;
         }
 
@@ -452,10 +466,12 @@ export class DiscordHandler {
           owner: parsedEnv.GITHUB_REPO_OWNER,
           repo: parsedEnv.GITHUB_REPO_NAME,
           issue_id: issueId,
-        })
+        }).catch((e) => {
+          console.error(`Failed to fetch issue ${issueId} from GitHub API: ${e}`)
+          return { status: 404 }
+        });
 
         if (issue.status === 404) {
-          console.error(`Failed to fetch issue ${issueId} from GitHub API.`)
           return;
         }
 
@@ -500,10 +516,12 @@ export class DiscordHandler {
         owner: parsedEnv.GITHUB_REPO_OWNER,
         repo: parsedEnv.GITHUB_REPO_NAME,
         issue_id: issueId,
+      }).catch((e) => {
+        console.error(`Failed to fetch issue ${issueId} from GitHub API: ${e}`)
+        return { status: 404 }
       })
 
       if (issue.status === 404) {
-        console.error(`Failed to fetch issue ${issueId} from GitHub API.`)
         return;
       }
 
