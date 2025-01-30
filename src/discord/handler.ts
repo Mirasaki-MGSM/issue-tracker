@@ -9,6 +9,7 @@ import {
   EmbedBuilder,
   ForumChannel,
   GatewayIntentBits,
+  GuildForumThreadCreateOptions,
   MessageMentionOptions,
   ThreadAutoArchiveDuration,
   ThreadChannel
@@ -49,8 +50,16 @@ const defaultAllowedMentions: MessageMentionOptions = {
   users: [],
 }
 
+export const maxLengthText = (text: string, maxLength: number): string => {
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  return `${text.slice(0, maxLength - 3)}...`;
+}
+
 export class DiscordBuilders {
-  static issueThreadName = (issue: Issue): string => `[issue-${issue.id}] ${issue.title}`
+  static issueThreadName = (issue: Issue): string => maxLengthText(`[issue-${issue.id}] ${issue.title}`, 100)
 
   static issueLinkButton = (issue: Issue): ButtonBuilder => new ButtonBuilder()
     .setStyle(ButtonStyle.Link)
@@ -60,7 +69,7 @@ export class DiscordBuilders {
     .setDisabled(false)
   static issueEmbed = (issue: Issue): EmbedBuilder => new EmbedBuilder()
     .setColor(Colors.Aqua)
-    .setTitle(issue.title)
+    .setTitle(maxLengthText(issue.title, 256))
     .setURL(issue.html_url)
     .setDescription(issue.body ?? null)
     .setTimestamp(new Date(issue.updated_at))
@@ -148,6 +157,7 @@ export class DiscordHandler {
     await DiscordHandler.getClient()
     await DiscordHandler.getChannel()
     await DiscordHandler.syncLabels()
+    await DiscordHandler.syncIssues()
   }
 
   static getClient = (): Promise<Client<true>> => {
@@ -224,12 +234,16 @@ export class DiscordHandler {
 
   static createThreadFromIssue = async (issue: Issue): Promise<ThreadChannel> => {
     const channel = await DiscordHandler.getChannel();
-    const thread = await channel.threads.create({
+    const resolvedTags = await DiscordHandler.tagsForLabels(issue.labels);
+
+    if (resolvedTags.length > 5) {
+      console.warn(`Issue has more than 5 tags applied, which is the maximum allowed by Discord. Only the first 5 tags will be applied.`)
+    }
+
+    const options: GuildForumThreadCreateOptions = {
       name: DiscordBuilders.issueThreadName(issue),
       message: {
-        embeds: [
-          DiscordBuilders.issueEmbed(issue),
-        ],
+        embeds: [ DiscordBuilders.issueEmbed(issue) ],
         allowedMentions: defaultAllowedMentions,
         files: parsedEnv.NODE_ENV === 'production' ? [] : [ DiscordBuilders.issueDebugFile(issue) ],
         components: [
@@ -238,11 +252,13 @@ export class DiscordHandler {
           ),
         ]
       },
-      appliedTags: await DiscordHandler.tagsForLabels(issue.labels),
+      appliedTags: resolvedTags.slice(0, 5),
       autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
       rateLimitPerUser: 0,
       reason: `Issue created by GitHub issue sync.`,
-    });
+    }
+
+    const thread = await channel.threads.create(options);
   
     return thread;
   }
@@ -305,7 +321,7 @@ export class DiscordHandler {
     embed.setTitle("Comment edited")
     embed.addFields({
       name: "Previous content",
-      value: `\`\`\`\n${payload.changes.body.from}\n\`\`\``.slice(0, 1024),
+      value: `\`\`\`\n${maxLengthText(payload.changes.body.from, 1024)}\n\`\`\``,
     })
 
     await thread.send({
@@ -485,11 +501,11 @@ export class DiscordHandler {
     embed.setFields([
       {
         name: "Previous title",
-        value: `${payload.changes.title.from}`.slice(0, 1024),
+        value: maxLengthText(payload.changes.title.from, 1024),
       },
       {
         name: "Previous body",
-        value: `${payload.changes.body.from}`.slice(0, 1024),
+        value: maxLengthText(payload.changes.body.from, 1024),
         inline: false,
       },
     ])
@@ -525,10 +541,16 @@ export class DiscordHandler {
   public static async onIssueLabeled(payload: IssueLabeledPayload) {
     const thread = await DiscordHandler.getThread(payload.issue);
 
-    await thread.setAppliedTags([
+    const resolvedTags = [
       ...thread.appliedTags,
       ...(await DiscordHandler.tagsForLabels([ payload.label ])),
-    ])
+    ]
+
+    if (resolvedTags.length > 5) {
+      console.warn(`Issue has more than 5 tags applied, which is the maximum allowed by Discord. Only the first 5 tags will be applied.`)
+    }
+
+    await thread.setAppliedTags(resolvedTags.slice(0, 5))
 
     return thread.send({
       content: `🏷️ Issue labeled with ${payload.label.name}.`,
@@ -624,8 +646,13 @@ export class DiscordHandler {
 
   public static async onIssueUnlabeled(payload: IssueUnlabeledPayload) {
     const thread = await DiscordHandler.getThread(payload.issue);
+    const resolvedTags = await DiscordHandler.tagsForLabels(payload.issue.labels);
 
-    await thread.setAppliedTags(await DiscordHandler.tagsForLabels(payload.issue.labels))
+    if (resolvedTags.length > 5) {
+      console.warn(`Issue has more than 5 tags applied, which is the maximum allowed by Discord. Only the first 5 tags will be applied.`)
+    }
+
+    await thread.setAppliedTags(resolvedTags.slice(0, 5))
 
     return thread.send({
       content: `🏷️ Label "${payload.label.name}" has been removed`,
