@@ -1,8 +1,8 @@
-import { IssueActionPayload, IssueActions } from '../types';
+import { IssuePayloadAction, PayloadAction } from '../types';
 
 export abstract class AbstractHandler {
-  public abstract handle<T extends IssueActions>(
+  public abstract handle<T extends PayloadAction>(
     type: T,
-    payload: IssueActionPayload<T>
+    payload: IssuePayloadAction<T>
   ): void;
 }
