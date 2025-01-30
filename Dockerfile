@@ -7,7 +7,7 @@ COPY --chown=node:node package-lock.json package-lock.json
 RUN npm install --frozen-lockfile
 
 # Install production dependencies only
-FROM node:17-alpine AS deps
+FROM node:20-alpine AS deps
 USER node
 WORKDIR /app
 COPY --chown=node:node package.json package.json
@@ -23,7 +23,7 @@ COPY --chown=node:node src/ src/
 RUN npm run build
 
 # Combine production only node_modules with compiled javascript files.
-FROM node:17-alpine AS final
+FROM node:20-alpine AS final
 RUN apk add --update dumb-init
 USER node
 WORKDIR /app
