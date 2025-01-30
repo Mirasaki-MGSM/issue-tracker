@@ -75,6 +75,17 @@ export const initGitHub = () => {
         return;
       }
     }
+
+    console.dir({
+      id,
+      event,
+      action: req.body.action,
+      comment: req.body.comment,
+      label: req.body.label,
+      issue: req.body.issue,
+    }, {
+      depth: Infinity
+    })
     
     if ('comment' in req.body) {
       switch (req.body.action) {
