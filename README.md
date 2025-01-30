@@ -31,10 +31,8 @@ This repository serves as the central hub for reporting issues, requesting new f
 
 We use labels to categorize and prioritize issues. Here are some of the key labels you might see:
 
-- **bug**: Something isn't working as expected.
 - **documentation**: Issues related to MGSM's documentation, such as errors, updates, or missing information.
 - **duplicate**: This issue or request has already been reported and exists elsewhere in the tracker.
-- **enhancement**: A request for a new feature or improvement.
 - **help wanted**: We could use some assistance on this issue.
 - **invalid**: The issue is not valid, possibly due to incorrect information, or is not relevant to the project.
 - **question**: A general question or discussion topic.
@@ -48,25 +46,11 @@ For internal tracking and management, we categorize issues based on applications
 - **apps/api**: The MGSM API, including backend services and integrations.
 - **apps/cms**: The content management system utilized within MGSM.
 
-### 📦 Packages
-
-We also categorize issues by specific packages within the MGSM platform to streamline the development process:
-
-- **packages/api-types**: Type definitions and interfaces for the MGSM API.
-- **packages/config**: Configuration settings and management for various MGSM environments.
-- **packages/constants**: Centralized constants used across the MGSM platform.
-- **packages/database**: Database schemas, migrations, and management utilities for MGSM.
-- **packages/eslint-config**: ESLint configuration and linting rules used in MGSM projects.
-- **packages/jest-presets**: Preset configurations for Jest testing in MGSM projects.
-- **packages/logger**: Logging utilities and configurations for MGSM applications.
-- **packages/typescript-config**: Shared TypeScript configuration settings across MGSM projects.
-- **packages/other**: Other/unspecified MGSM packages, modules, or libraries.
-
 > This internal categorization allows us to manage and resolve issues more efficiently while ensuring that the right team is notified.
 
 ### 🛠️ Functional Areas
 
-In addition to components and packages, issues are categorized by functional areas to address specific aspects of the platform:
+In addition to applications, issues are categorized by functional areas to address specific aspects of the platform:
 
 - **area/billing**: The billing and payment processing systems.
 - **area/notifications**: Email, SMS, Discord, or in-app notifications.
