@@ -738,7 +738,7 @@ export class DiscordHandler {
       ...channelLabels,
       ...missingLabels.map((label) => ({
         name: label.name,
-        moderated: false
+        moderated: true,
       }))
     ], `Labels synced from GitHub. ${missingLabels.length} labels added.`)
   }
@@ -759,7 +759,7 @@ export class DiscordHandler {
       ...channel.availableTags,
       {
         name: label.name,
-        moderated: false,
+        moderated: true,
       }
     ], `Label created by ${payload.sender.login}.`)
   }
@@ -782,7 +782,7 @@ export class DiscordHandler {
 
     await channel.setAvailableTags(channel.availableTags.map((e) => e.name === payload.changes.name.from ? {
       name: labelName,
-      moderated: false,
+      moderated: true,
       id: e.id,
       emoji: e.emoji,
     } : e), `Label edited by ${payload.sender.login}.`)
