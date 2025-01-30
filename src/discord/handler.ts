@@ -82,7 +82,7 @@ export class DiscordBuilders {
         landscape: "true",
         mobile: "false",
         cache: "true",
-      })
+      }).toString()
     }`)
     .setFooter({
       text: `Issue updated at`,
