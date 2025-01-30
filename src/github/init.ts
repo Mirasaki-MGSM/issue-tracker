@@ -68,6 +68,13 @@ export const initGitHub = () => {
     }
 
     res.status(200).end()
+
+    if (req.body.repository) {
+      if (req.body.repository.name !== GITHUB_REPO_NAME || req.body.repository.owner.login !== GITHUB_REPO_OWNER) {
+        console.warn('GitHub Webhook received for different repository - ignoring.')
+        return;
+      }
+    }
     
     if ('comment' in req.body) {
       switch (req.body.action) {

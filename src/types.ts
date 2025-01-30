@@ -39,8 +39,8 @@ export type Repository = {
 
 export type User = {
   avatar_url: string | null;
-  deleted: boolean;
-  email: string | null;
+  deleted?: boolean;
+  email?: string | null | undefined;
   events_url: string | null;
   followers_url: string | null;
   following_url: string | null;
@@ -49,7 +49,7 @@ export type User = {
   html_url: string | null;
   id: number;
   login: string;
-  name: string | null;
+  name?: string | null | undefined;
   node_id: string | null;
   organizations_url: string | null;
   received_events_url: string | null;
@@ -57,27 +57,27 @@ export type User = {
   site_admin: boolean;
   starred_url: string | null;
   subscriptions_url: string | null;
-  type: 'Bot' | 'User' | 'Organization' | null;
+  type: string; // 'Bot' | 'User' | 'Organization' | null;
   url: string | null;
-  user_view_type: string | null;
+  user_view_type?: string | null | undefined;
 }
 
 export type Label = {
-  color: string;
-  default: boolean;
-  description: string | null;
-  id: number;
-  name: string;
-  node_id: string;
-  url: string;
+  color?: string | null | undefined;
+  default?: boolean | undefined;
+  description?: string | null | undefined;
+  id?: number | undefined;
+  name?: string | undefined;
+  node_id?: string | undefined;
+  url?: string | undefined;
 }
 
 export type Milestone = {
   closed_at: string | null;
   closed_issues: number;
   created_at: string;
-  creator: User;
-  description: string | null;
+  creator: User | null;
+  description?: string | null | undefined;
   due_on: string | null;
   html_url: string;
   id: number;
@@ -85,7 +85,7 @@ export type Milestone = {
   node_id: string;
   number: number;
   open_issues: number;
-  state: 'open' | 'closed';
+  state: string; // 'open' | 'closed';
   title: string;
   updated_at: string;
   url: string;
@@ -93,27 +93,27 @@ export type Milestone = {
 
 export type GithubApp = {
   created_at: string;
-  description: string;
+  description: string | null;
   events: string[];
   external_url: string | null;
   html_url: string;
   id: number;
-  name: string;
+  name: string | null;
   node_id: string;
   owner: User | null;
   permissions: {
-    [key: string]: 'read' | 'write';
+    [key: string]: 'read' | 'write' | string | undefined;
   };
-  slug: string | null;
+  slug?: string | null | undefined;
   updated_at: string;
 }
 
 export type PullRequest = {
-  diff_url: string;
-  html_url: string;
-  patch_url: string;
-  url: string;
-  merged_at: string | null;
+  diff_url: string | null;
+  html_url: string | null;
+  patch_url: string | null;
+  url: string | null;
+  merged_at?: string | null | undefined;
 }
 
 export type Reactions = {
@@ -136,37 +136,36 @@ export type SubIssueSummary = {
 }
 
 export type Issue = {
-  active_lock_reason: string | null;
+  active_lock_reason?: string | null | undefined;
   assignee: User | null;
-  assignees: User[];
+  assignees?: User[] | null | undefined;
   author_association: 'COLLABORATOR' | 'CONTRIBUTOR' | 'FIRST_TIMER' | 'FIRST_TIME_CONTRIBUTOR' | 'MANNEQUIN' | 'MEMBER' | 'NONE' | 'OWNER';
-  body: string | null;
+  body?: string | null | undefined;
   closed_at: string | null;
   comments: number;
   comments_url: string;
   created_at: string;
-  draft: boolean;
+  draft?: boolean | undefined;
   events_url: string;
   html_url: string;
   id: number;
-  labels: Label[];
+  labels: (string | Label)[];
   labels_url: string;
   locked: boolean;
   milestone: Milestone | null;
   node_id: string;
   number: number;
-  performed_via_github_app: GithubApp | null;
-  pull_request: PullRequest | null;
-  reactions: Reactions;
+  performed_via_github_app?: GithubApp | null | undefined;
+  pull_request?: PullRequest | null | undefined;
+  reactions?: Reactions | undefined;
   repository_url: string;
-  sub_issue_summary: SubIssueSummary | null;
-  state: 'open' | 'closed';
-  state_reason: string | null;
-  timeline_url: string;
+  state: string; // 'open' | 'closed';
+  state_reason?: string | null | undefined; // 'completed' | 'reopened' | 'not_planned' | null
+  timeline_url?: string | null | undefined;
   title: string;
   updated_at: string;
   url: string;
-  user: User;
+  user: User | null;
 }
 
 export type Comment = {
@@ -178,7 +177,7 @@ export type Comment = {
   issue_url: string;
   node_id: string;
   performed_via_github_app: null;
-  reactions: Reactions;
+  reactions?: Reactions | undefined;
   updated_at: string;
   url: string;
   user: User;
@@ -353,31 +352,31 @@ export type SubIssue = {
   events_url: string;
   html_url: string;
   number: number;
-  state: 'open' | 'closed';
-  state_reason: 'completed' | 'reopened' | 'not_planned' | null
+  state: string; // 'open' | 'closed';
+  state_reason?: string | null | undefined; // 'completed' | 'reopened' | 'not_planned' | null
   title: string;
-  body: string | null;
-  user: User;
-  labels: Label[];
+  body?: string | null | undefined;
+  user: User | null;
+  labels: (string | Label)[];
   assignee: User | null;
-  assignees: User[];
+  assignees?: User[] | null | undefined;
   milestone: Milestone | null;
   locked: boolean;
-  active_lock_reason: string | null;
+  active_lock_reason?: string | null | undefined;
   comments: number;
   pull_request: PullRequest | null;
   closed_at: string | null;
   created_at: string;
   updated_at: string;
-  draft: boolean;
+  draft?: boolean | undefined;
   closed_by: User | null;
   body_html: string | null;
   body_text: string | null;
-  timeline_url: string;
+  timeline_url?: string | null | undefined;
   repository: Repository;
   performed_via_github_app: null;
   author_association: 'COLLABORATOR' | 'CONTRIBUTOR' | 'FIRST_TIMER' | 'FIRST_TIME_CONTRIBUTOR' | 'MANNEQUIN' | 'MEMBER' | 'NONE' | 'OWNER';
-  reactions: Reactions;
+  reactions?: Reactions | undefined;
   sub_issues_summary: SubIssueSummary | null;
 }
 

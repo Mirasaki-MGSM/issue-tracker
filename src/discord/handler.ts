@@ -62,16 +62,16 @@ export class DiscordBuilders {
     .setColor(Colors.Aqua)
     .setTitle(issue.title)
     .setURL(issue.html_url)
-    .setDescription(issue.body)
+    .setDescription(issue.body ?? null)
     .setTimestamp(new Date(issue.updated_at))
     .setFooter({
       text: `Issue updated at`,
-      iconURL: issue.user.avatar_url ?? undefined,
+      iconURL: issue.user?.avatar_url ?? undefined,
     })
     .setAuthor({
-      name: issue.user.login,
-      iconURL: issue.user.avatar_url ?? undefined,
-      url: issue.user.html_url ?? undefined,
+      name: issue.user?.login ?? "Unknown",
+      iconURL: issue.user?.avatar_url ?? undefined,
+      url: issue.user?.html_url ?? undefined,
     })
     .setFields([
       {
@@ -210,10 +210,12 @@ export class DiscordHandler {
     const tags = channel.availableTags;
 
     return labels.map((label) => {
-      const tag = tags.find((t) => t.name === label.name);
+      const tag = tags.find((t) => t.name === (typeof label === 'string' ? label : label.name));
 
       if (!tag) {
-        throw new Error(`Discord tag for GitHub label ${label.name} not found.`);
+        throw new Error(`Discord tag for GitHub label ${
+          typeof label === 'string' ? label : label.name
+        } not found.`);
       }
 
       return tag.id;
@@ -356,6 +358,10 @@ export class DiscordHandler {
     const channel = await DiscordHandler.getChannel();
     const label = payload.label;
 
+    if (!label.name) {
+      throw new Error(`Label name is required.`);
+    }
+
     if (channel.availableTags.length === 20) {
       throw new Error(`The maximum number of labels has been reached. Please remove a label before adding a new one. (Discord currently has ${channel.availableTags.length} labels, out of a maximum of 20.)`);
     }
@@ -379,9 +385,14 @@ export class DiscordHandler {
   public static async onLabelEdited(payload: LabelEditedPayload) {
     const channel = await DiscordHandler.getChannel();
     const label = payload.label;
+    const labelName = label.name;
+
+    if (!labelName) {
+      throw new Error(`Label name is required.`);
+    }
 
     await channel.setAvailableTags(channel.availableTags.map((e) => e.name === payload.changes.name.from ? {
-      name: label.name,
+      name: labelName,
       moderated: false,
       id: e.id,
       emoji: e.emoji,
@@ -391,6 +402,22 @@ export class DiscordHandler {
   // 
   // Start Issues
   // 
+
+  public static async syncIssues() {
+    const [ channel, issues ] = await Promise.all([
+      DiscordHandler.getChannel(),
+      octokit.request('GET /repos/{owner}/{repo}/issues', {
+        owner: parsedEnv.GITHUB_REPO_OWNER,
+        repo: parsedEnv.GITHUB_REPO_NAME,
+      })
+    ]);
+
+    const threads = await channel.threads.fetch({}, { cache: true });
+    const threadNames = threads.threads.map((t) => t.name);
+    const missingIssues = issues.data.filter((issue) => !threadNames.includes(DiscordBuilders.issueThreadName(issue)));
+
+    await Promise.all(missingIssues.map((issue) => DiscordHandler.createThreadFromIssue(issue)))
+  }
 
   public static async onIssueAssigned(payload: IssueAssignedPayload) {
     const thread = await DiscordHandler.getThread(payload.issue);
