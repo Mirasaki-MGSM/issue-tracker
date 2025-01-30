@@ -1,8 +1,10 @@
 import { 
   ActionRowBuilder,
   AttachmentBuilder,
+  AuditLogEvent,
   ButtonBuilder,
   ButtonStyle,
+  ChannelFlags,
   ChannelType,
   Client,
   Colors,
@@ -59,6 +61,7 @@ export const maxLengthText = (text: string, maxLength: number): string => {
 }
 
 export class DiscordBuilders {
+  static idFromThreadName = (name: string): number => parseInt(name.match(/\[issue-(\d+)\]/)?.[1] ?? 'isNaN')
   static issueThreadName = (issue: Issue): string => maxLengthText(`[issue-${issue.id}] ${issue.title}`, 100)
 
   static issueLinkButton = (issue: Issue): ButtonBuilder => new ButtonBuilder()
@@ -178,17 +181,364 @@ export class DiscordHandler {
         return;
       }
   
+      DiscordHandler.registerDiscordSyncListeners()
+
       DiscordHandler.client.login(parsedEnv.DISCORD_CLIENT_TOKEN)
       DiscordHandler.client.once('ready', (c) => {
         console.log(`Discord client ready and logged in as ${c.user.username}.`)
         resolve(c)
       })
-      DiscordHandler.client.on('channelDelete', (channel) => {
-        if (channel.id === parsedEnv.DISCORD_CHANNEL_ID) {
-          console.error(`Forum channel with ID ${parsedEnv.DISCORD_CHANNEL_ID} was deleted. Exiting.`)
-          process.exit(1)
-        }
+    });
+  }
+
+  private static registerDiscordSyncListeners = () => {
+    DiscordHandler.client.on('channelDelete', (channel) => {
+      if (channel.id === parsedEnv.DISCORD_CHANNEL_ID) {
+        console.error(`Forum channel with ID ${parsedEnv.DISCORD_CHANNEL_ID} was deleted. Exiting.`)
+        process.exit(1)
+      }
+    })
+
+    // Post comments on GitHub if messages are sent in Discord threads. (onIssueCommentCreated)
+    DiscordHandler.client.on('messageCreate', async (message) => {
+      if (!message.thread || !message.thread.parent || message.author.bot) {
+        return;
+      }
+
+      if (message.thread.parent.id !== parsedEnv.DISCORD_CHANNEL_ID) {
+        return;
+      }
+
+      const thread = message.thread;
+      const issueId = DiscordBuilders.idFromThreadName(thread.name);
+
+      if (isNaN(issueId)) {
+        console.error(`Failed to parse issue ID from thread name ${thread.name}.`)
+        return;
+      }
+
+      const issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_id}', {
+        owner: parsedEnv.GITHUB_REPO_OWNER,
+        repo: parsedEnv.GITHUB_REPO_NAME,
+        issue_id: issueId,
       })
+
+      if (issue.status === 404) {
+        console.error(`Failed to fetch issue ${issueId} from GitHub API.`)
+        return;
+      }
+
+      await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_id}/comments', {
+        owner: parsedEnv.GITHUB_REPO_OWNER,
+        repo: parsedEnv.GITHUB_REPO_NAME,
+        issue_id: issueId,
+        body: `> **${message.author.username}**: ${message.content}`,
+      })
+    });
+
+    // Remove GitHub comments when Discord messages are deleted. (onIssueCommentDeleted)
+    DiscordHandler.client.on('messageDelete', async (message) => {
+      if (!message.thread || message.author?.bot || !message.thread.parent) {
+        return;
+      }
+
+      if (message.thread.parent.id !== parsedEnv.DISCORD_CHANNEL_ID) {
+        return;
+      }
+
+      const thread = message.thread;
+      const issueId = DiscordBuilders.idFromThreadName(thread.name);
+
+      if (isNaN(issueId)) {
+        console.error(`Failed to parse issue ID from thread name ${thread.name}.`)
+        return;
+      }
+
+      const comments = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_id}/comments', {
+        owner: parsedEnv.GITHUB_REPO_OWNER,
+        repo: parsedEnv.GITHUB_REPO_NAME,
+        issue_id: issueId,
+      })
+
+      if (comments.status === 404) {
+        console.error(`Failed to fetch comments for issue ${issueId} from GitHub API.`)
+        return;
+      }
+
+      // @ts-expect-error Untyped interface
+      const comment = comments.data.find((c) => c.body.startsWith(`> **${message.author?.username ?? 'Unknown'}**: ${message.content}`))
+
+      if (!comment) {
+        console.error(`Failed to find comment for message ${message.id}.`)
+        return;
+      }
+
+      await octokit.request('DELETE /repos/{owner}/{repo}/issues/comments/{comment_id}', {
+        owner: parsedEnv.GITHUB_REPO_OWNER,
+        repo: parsedEnv.GITHUB_REPO_NAME,
+        comment_id: comment.id,
+      })
+    });
+
+    // Edit GitHub comments when Discord messages are edited. (onIssueCommentEdited)
+    DiscordHandler.client.on('messageUpdate', async (oldMessage, newMessage) => {
+      if (!oldMessage.thread || oldMessage.author?.bot || !oldMessage.thread.parent) {
+        return;
+      }
+
+      if (oldMessage.thread.parent.id !== parsedEnv.DISCORD_CHANNEL_ID) {
+        return;
+      }
+
+      const thread = oldMessage.thread;
+      const issueId = DiscordBuilders.idFromThreadName(thread.name);
+
+      if (isNaN(issueId)) {
+        console.error(`Failed to parse issue ID from thread name ${thread.name}.`)
+        return;
+      }
+
+      const isPrimaryThreadMessage = await thread.messages.fetch({ limit: 1 }).then((messages) => messages.first()?.id === oldMessage.id)
+
+      if (isPrimaryThreadMessage) {
+        // Update the issue body if the primary thread message is edited. (onIssueEdited)
+        const issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_id}', {
+          owner: parsedEnv.GITHUB_REPO_OWNER,
+          repo: parsedEnv.GITHUB_REPO_NAME,
+          issue_id: issueId,
+        })
+
+        if (issue.status === 404) {
+          console.error(`Failed to fetch issue ${issueId} from GitHub API.`)
+          return;
+        }
+
+        await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_id}', {
+          owner: parsedEnv.GITHUB_REPO_OWNER,
+          repo: parsedEnv.GITHUB_REPO_NAME,
+          issue_id: issueId,
+          body: newMessage.content,
+        })
+
+        return;
+      }
+
+      const comments = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_id}/comments', {
+        owner: parsedEnv.GITHUB_REPO_OWNER,
+        repo: parsedEnv.GITHUB_REPO_NAME,
+        issue_id: issueId,
+      })
+
+      if (comments.status === 404) {
+        console.error(`Failed to fetch comments for issue ${issueId} from GitHub API.`)
+        return;
+      }
+
+      // @ts-expect-error Untyped interface
+      const comment = comments.data.find((c) => c.body.startsWith(`> **${oldMessage.author?.username ?? 'Unknown'}**: ${oldMessage.content}`))
+
+      if (!comment) {
+        console.error(`Failed to find comment for message ${oldMessage.id}.`)
+        return;
+      }
+
+      await octokit.request('PATCH /repos/{owner}/{repo}/issues/comments/{comment_id}', {
+        owner: parsedEnv.GITHUB_REPO_OWNER,
+        repo: parsedEnv.GITHUB_REPO_NAME,
+        comment_id: comment.id,
+        body: `> **${newMessage.author.username}**: ${newMessage.content}`,
+      })
+    });
+    
+    // Note: We do NOT support modifying labels/tags in Discord,
+    // as Discord can have additional tags that are not present in GitHub.
+
+    // Note: Assign and unassign can not be done through Discord.
+
+    // Close GitHub issues when Discord threads are archived. (onIssueClosed)
+    DiscordHandler.client.on('threadUpdate', async (oldThread, newThread) => {
+      if (!oldThread.parent || oldThread.parent.id !== parsedEnv.DISCORD_CHANNEL_ID) {
+        return;
+      }
+
+      if (!oldThread.name.startsWith('[issue-')) {
+        return;
+      }
+
+      const client = await DiscordHandler.getClient();
+      const auditEntry = await oldThread.guild.fetchAuditLogs({
+        type: AuditLogEvent.ThreadUpdate,
+        limit: 1,
+        user: client.user,
+      })
+      const auditLogEntry = auditEntry.entries.first()
+
+      if (auditLogEntry && auditLogEntry.target.id === oldThread.id) {
+        console.log(`Thread ${newThread.name} was updated by our bot user - ignoring.`)
+        return;
+      }
+
+      // Note: Pinning is not supported, as Discord forum channels can only have 1 pinned thread.
+      // if (oldThread.lastPinTimestamp !== newThread.lastPinTimestamp) {
+      //   const threads = await oldThread.parent.threads.fetch({}, { cache: true });
+      //   const pinned = threads.threads.find(thread => thread.flags.has(ChannelFlags.Pinned))
+
+      //   if (pinned) {
+      //     const issueId = DiscordBuilders.idFromThreadName(thread.name);
+
+      //     if (isNaN(issueId)) {
+      //       console.error(`Failed to parse issue ID from thread name ${pinned.name}.`)
+      //       return;
+      //     }
+
+      //     const issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_id}', {
+      //       owner: parsedEnv.GITHUB_REPO_OWNER,
+      //       repo: parsedEnv.GITHUB_REPO_NAME,
+      //       issue_id: issueId,
+      //     })
+
+      //     if (issue.status === 404) {
+      //       console.error(`Failed to fetch issue ${issueId} from GitHub API.`)
+      //       return;
+      //     }
+
+      //     await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_id}', {
+      //       owner: parsedEnv.GITHUB_REPO_OWNER,
+      //       repo: parsedEnv.GITHUB_REPO_NAME,
+      //       issue_id: issueId,
+      //       pinned: true,
+      //     })
+      //   }
+      // }
+
+      if (
+        (!oldThread.archived && newThread.archived)
+        || (!oldThread.locked && newThread.locked)
+      ) {
+        const issueId = DiscordBuilders.idFromThreadName(oldThread.name);
+        if (isNaN(issueId)) {
+          console.error(`Failed to parse issue ID from thread name ${oldThread.name}.`)
+          return;
+        }
+
+        const issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_id}', {
+          owner: parsedEnv.GITHUB_REPO_OWNER,
+          repo: parsedEnv.GITHUB_REPO_NAME,
+          issue_id: issueId,
+        })
+
+        if (issue.status === 404) {
+          console.error(`Failed to fetch issue ${issueId} from GitHub API.`)
+          return;
+        }
+
+        await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_id}', {
+          owner: parsedEnv.GITHUB_REPO_OWNER,
+          repo: parsedEnv.GITHUB_REPO_NAME,
+          issue_id: issueId,
+          state: 'closed',
+        })
+      }
+
+      // When a tag is added on Discord, add the label on GitHub.
+      if (oldThread.appliedTags.length !== newThread.appliedTags.length) {
+        const issueId = DiscordBuilders.idFromThreadName(oldThread.name);
+        if (isNaN(issueId)) {
+          console.error(`Failed to parse issue ID from thread name ${oldThread.name}.`)
+          return;
+        }
+
+        const issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_id}', {
+          owner: parsedEnv.GITHUB_REPO_OWNER,
+          repo: parsedEnv.GITHUB_REPO_NAME,
+          issue_id: issueId,
+        })
+
+        if (issue.status === 404) {
+          console.error(`Failed to fetch issue ${issueId} from GitHub API.`)
+          return;
+        }
+
+        await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_id}', {
+          owner: parsedEnv.GITHUB_REPO_OWNER,
+          repo: parsedEnv.GITHUB_REPO_NAME,
+          issue_id: issueId,
+          labels: newThread.appliedTags,
+        })
+      }
+    });
+
+    // Delete GitHub issues when Discord threads are deleted. (onIssueDeleted)
+    DiscordHandler.client.on('threadDelete', async (thread) => {
+      if (!thread.parent || thread.parent.id !== parsedEnv.DISCORD_CHANNEL_ID) {
+        return;
+      }
+
+      const client = await DiscordHandler.getClient();
+      const auditEntry = await thread.guild.fetchAuditLogs({
+        type: AuditLogEvent.ThreadDelete,
+        limit: 1,
+        user: client.user,
+      })
+      const auditLogEntry = auditEntry.entries.first()
+
+      if (auditLogEntry && auditLogEntry.target.id === thread.id) {
+        console.log(`Thread ${thread.name} was deleted by our bot user - ignoring.`)
+        return;
+      }
+
+      const issueId = DiscordBuilders.idFromThreadName(thread.name);
+      if (isNaN(issueId)) {
+        console.error(`Failed to parse issue ID from thread name ${thread.name}.`)
+        return;
+      }
+
+      const issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_id}', {
+        owner: parsedEnv.GITHUB_REPO_OWNER,
+        repo: parsedEnv.GITHUB_REPO_NAME,
+        issue_id: issueId,
+      })
+
+      if (issue.status === 404) {
+        console.error(`Failed to fetch issue ${issueId} from GitHub API.`)
+        return;
+      }
+
+      await octokit.request('DELETE /repos/{owner}/{repo}/issues/{issue_id}', {
+        owner: parsedEnv.GITHUB_REPO_OWNER,
+        repo: parsedEnv.GITHUB_REPO_NAME,
+        issue_id: issueId,
+      })
+    })
+
+    // If a thread is created in the forum channel, create a new issue on GitHub. (onIssueOpened)
+    DiscordHandler.client.on('threadCreate', async (thread) => {
+      if (!thread.parent || thread.parent.id !== parsedEnv.DISCORD_CHANNEL_ID) {
+        return;
+      }
+
+      const client = await DiscordHandler.getClient();
+      const auditEntry = await thread.guild.fetchAuditLogs({
+        type: AuditLogEvent.ThreadCreate,
+        limit: 1,
+        user: client.user,
+      })
+      const auditLogEntry = auditEntry.entries.first()
+
+      if (auditLogEntry && auditLogEntry.target.id === thread.id) {
+        console.log(`Thread ${thread.name} was created by our bot user - ignoring.`)
+        return;
+      }
+
+      const issue = await octokit.request('POST /repos/{owner}/{repo}/issues', {
+        owner: parsedEnv.GITHUB_REPO_OWNER,
+        repo: parsedEnv.GITHUB_REPO_NAME,
+        title: thread.name,
+        body: thread.messages.cache.first()?.content ?? undefined,
+        labels: thread.appliedTags,
+      })
+
+      await thread.setName(DiscordBuilders.issueThreadName(issue.data))
     });
   }
   
