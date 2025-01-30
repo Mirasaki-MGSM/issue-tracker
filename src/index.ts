@@ -33,7 +33,7 @@ const main = async () => {
   
   console.log(`Starting with following environment:`, Object.fromEntries(Object.entries(parsedEnv).map(([key, value]) => [
     key,
-    key.includes('TOKEN') || key.includes('SECRET') ? '***' : value,
+    key.includes('TOKEN') || key.includes('SECRET') || key.includes('PRIVATE_KEY') ? '***' : value,
   ])));
   
   await Promise.all([
