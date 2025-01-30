@@ -73,6 +73,17 @@ export class DiscordBuilders {
     .setURL(issue.html_url)
     .setDescription(issue.body ?? null)
     .setTimestamp(new Date(issue.updated_at))
+    .setImage(`https://share.mirasaki.dev/screenshot?${
+      new URLSearchParams({
+        page: issue.html_url,
+        width: "1920",
+        height: "1080",
+        full: "true",
+        landscape: "true",
+        mobile: "false",
+        cache: "true",
+      })
+    }`)
     .setFooter({
       text: `Issue updated at`,
       iconURL: issue.user?.avatar_url ?? undefined,
@@ -250,7 +261,7 @@ export class DiscordHandler {
           new ActionRowBuilder<ButtonBuilder>().addComponents(
             DiscordBuilders.issueLinkButton(issue),
           ),
-        ]
+        ],
       },
       appliedTags: resolvedTags.slice(0, 5),
       autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
