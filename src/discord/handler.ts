@@ -912,9 +912,19 @@ export class DiscordHandler {
   public static async onIssueLabeled(payload: IssueLabeledPayload) {
     const thread = await DiscordHandler.getThread(payload.issue);
 
+    if (!payload.label.name) {
+      throw new Error(`Label name is required, please updated the GitHub label ${payload.label.id}.`);
+    }
+
+    if (thread.appliedTags.includes(payload.label.name)) {
+      return;
+    }
+
     const resolvedTags = [
-      ...thread.appliedTags,
-      ...(await DiscordHandler.tagsForLabels([ payload.label ])),
+      ...new Set([
+        ...thread.appliedTags,
+        ...(await DiscordHandler.tagsForLabels([ payload.label ])),
+      ])
     ]
 
     if (resolvedTags.length > 5) {
