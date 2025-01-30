@@ -184,7 +184,7 @@ export class DiscordHandler {
           ),
         ]
       },
-      appliedTags: ['issue'],
+      // appliedTags: ['issue'], // [DEV] Integration with labels
       autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
       rateLimitPerUser: 0,
       reason: `Issue created by GitHub issue sync.`,
