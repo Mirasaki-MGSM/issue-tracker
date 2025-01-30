@@ -27,7 +27,7 @@ FROM node:17-alpine AS final
 RUN apk add --update dumb-init
 USER node
 WORKDIR /app
-COPY --chown=node:node --from=deps /app/node_modules ./app/node_modules
+COPY --chown=node:node --from=deps /app/node_modules ./node_modules
 COPY --chown=node:node --from=build /app/dist ./dist/
-COPY --chown=node:node --from=build /app/package.json ./
+COPY --chown=node:node --from=build /app/package.json ./package.json
 CMD [ "dumb-init", "node", "/app/dist/index.js" ]
