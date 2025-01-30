@@ -26,11 +26,8 @@ export type LabelAction = 'label-created'
 export type PayloadAction = IssueAction | IssueCommentAction | LabelAction;
 
 export type IssuePayloadAction<T extends PayloadAction> =
-  T extends 'commented'
-    ? IssueCommentPayload
-    : T extends 'label-created' | 'label-deleted' | 'label-edited'
-      ? LabelPayload
-      : IssuePayload
+  T extends IssueCommentAction ? IssueCommentPayload
+  : T extends LabelAction ? LabelPayload : IssuePayload
 
 export type Assignee = {
   avatar_url: string | null;
