@@ -317,7 +317,7 @@ export class DiscordHandler {
           owner: parsedEnv.GITHUB_REPO_OWNER,
           repo: parsedEnv.GITHUB_REPO_NAME,
           issue_id: issueId,
-          body: newMessage.content,
+          body: `${newMessage.content}\n\nCreated by ${newMessage.author.username} on [Discord](${newMessage.url})`,
         })
 
         return;
@@ -539,7 +539,7 @@ export class DiscordHandler {
         owner: parsedEnv.GITHUB_REPO_OWNER,
         repo: parsedEnv.GITHUB_REPO_NAME,
         title: thread.name,
-        body: thread.messages.cache.first()?.content ?? undefined,
+        body: `${thread.messages.cache.first()?.content ?? ''}\n\nCreated by ${(await thread.fetchOwner())?.user?.username ?? 'Unknown'} on [Discord](${thread.url})`,
         labels: thread.appliedTags.map((tag) => channel.availableTags.find((t) => t.id === tag)?.name)
           .filter((label) => typeof label === 'string'),
       })
