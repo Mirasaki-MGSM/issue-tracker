@@ -4,7 +4,7 @@ USER node
 WORKDIR /app
 COPY --chown=node:node package.json package.json
 COPY --chown=node:node package-lock.json package-lock.json
-RUN npm install --frozen-lockfile --no-optional
+RUN npm install --frozen-lockfile
 
 # Install production dependencies only
 FROM node:17-alpine AS deps
