@@ -459,11 +459,14 @@ export class DiscordHandler {
           return;
         }
 
+        const channel = await DiscordHandler.getChannel();
+
         await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_id}', {
           owner: parsedEnv.GITHUB_REPO_OWNER,
           repo: parsedEnv.GITHUB_REPO_NAME,
           issue_id: issueId,
-          labels: newThread.appliedTags,
+          labels: newThread.appliedTags.map((tag) => channel.availableTags.find((t) => t.id === tag)?.name)
+            .filter((label) => typeof label === 'string'),
         })
       }
     });
@@ -530,12 +533,15 @@ export class DiscordHandler {
         return;
       }
 
+      const channel = await DiscordHandler.getChannel();
+
       const issue = await octokit.request('POST /repos/{owner}/{repo}/issues', {
         owner: parsedEnv.GITHUB_REPO_OWNER,
         repo: parsedEnv.GITHUB_REPO_NAME,
         title: thread.name,
         body: thread.messages.cache.first()?.content ?? undefined,
-        labels: thread.appliedTags,
+        labels: thread.appliedTags.map((tag) => channel.availableTags.find((t) => t.id === tag)?.name)
+          .filter((label) => typeof label === 'string'),
       })
 
       await thread.setName(DiscordBuilders.issueThreadName(issue.data))
