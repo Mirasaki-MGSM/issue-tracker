@@ -4,6 +4,7 @@ import { parsedEnv } from '../env'
 import crypto from 'crypto'
 
 const {
+  EXPRESS_PORT,
   GITHUB_CLIENT_ID,
   GITHUB_CLIENT_SECRET,
   GITHUB_REPO_NAME,
@@ -13,9 +14,10 @@ const {
 
 export const initGitHub = () => {
   const app = Express()
+  
   app.use(bodyParser.json({ limit: '5mb' }))
   app.use(bodyParser.urlencoded({ extended: true }))
-  app.use((req, res, next) => {
+  app.use((_req, res, next) => {
     res.setHeader('Content-Type', 'application/json')
     next()
   })
@@ -56,7 +58,7 @@ export const initGitHub = () => {
     res.send({ message: 'Received' })
   })
 
-  app.listen(3000, () => {
-    console.log('GitHub Webhook server listening on port 3000')
+  app.listen(EXPRESS_PORT, () => {
+    console.log(`GitHub Webhook server listening on port ${EXPRESS_PORT}`)
   })
 }

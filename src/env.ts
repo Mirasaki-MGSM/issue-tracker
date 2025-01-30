@@ -10,6 +10,7 @@ dotenv.config({ path: envPath })
 
 const {
   NODE_ENV = 'development',
+  EXPRESS_PORT = '5000',
 
   DISCORD_CLIENT_ID,
   DISCORD_CLIENT_TOKEN,
@@ -25,6 +26,7 @@ const {
 
 const requiredEnvRaw = {
   NODE_ENV,
+  EXPRESS_PORT,
 
   DISCORD_CLIENT_ID,
   DISCORD_CLIENT_TOKEN,
@@ -65,4 +67,5 @@ export const parsedEnv = {
   ...requiredEnv,
   ...optionalEnv,
   NODE_ENV: resolveNodeEnv(requiredEnv.NODE_ENV),
+  EXPRESS_PORT: parseInt(requiredEnv.EXPRESS_PORT),
 };
