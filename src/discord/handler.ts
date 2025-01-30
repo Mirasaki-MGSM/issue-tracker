@@ -520,16 +520,9 @@ export class DiscordHandler {
         return;
       }
 
-      const client = await DiscordHandler.getClient();
-      const auditEntry = await thread.guild.fetchAuditLogs({
-        type: AuditLogEvent.ThreadCreate,
-        limit: 1,
-        user: client.user,
-      })
-      const auditLogEntry = auditEntry.entries.first()
+      const owner = await thread.fetchOwner();
 
-      if (auditLogEntry && auditLogEntry.target.id === thread.id) {
-        console.log(`Thread ${thread.name} was created by our bot user - ignoring.`)
+      if (owner?.user?.bot) {
         return;
       }
 
