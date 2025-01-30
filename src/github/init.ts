@@ -8,8 +8,9 @@ import { createAppAuth } from '@octokit/auth-app'
 
 const { 
   EXPRESS_PORT,
-  GITHUB_CLIENT_ID,
-  GITHUB_CLIENT_SECRET,
+  GITHUB_APP_ID,
+  GITHUB_APP_PRIVATE_KEY,
+  GITHUB_APP_INSTALLATION_ID,
   GITHUB_REPO_NAME,
   GITHUB_REPO_OWNER,
   GITHUB_WEBHOOK_SECRET,
@@ -18,8 +19,9 @@ const {
 export const octokit = new Octokit({
   authStrategy: createAppAuth,
   auth: {
-    clientId: GITHUB_CLIENT_ID,
-    clientSecret: GITHUB_CLIENT_SECRET,
+    appId: GITHUB_APP_ID,
+    privateKey: GITHUB_APP_PRIVATE_KEY,
+    installationId: GITHUB_APP_INSTALLATION_ID,
   }
 })
 
