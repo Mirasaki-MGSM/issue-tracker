@@ -1,0 +1,11 @@
+.github
+.vscode
+dist
+node_modules
+.dockerignore
+.env.example
+.gitignore
+*.md
+compose.yaml
+Dockerfile
+LICENSE

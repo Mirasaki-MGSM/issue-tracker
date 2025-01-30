@@ -1,18 +1,27 @@
 import Express from 'express'
 import bodyParser from 'body-parser'
-import { parsedEnv } from '../env'
+import { parsedEnv } from '../env.js'
 import crypto from 'crypto'
-import { GithubEventHandler } from './handler'
-import { IssueAction, IssueCommentAction, LabelAction } from '../types'
+import { GithubEventHandler } from './handler.js'
+import { Octokit } from '@octokit/core'
+import { createAppAuth } from '@octokit/auth-app'
 
-const {
+const { 
   EXPRESS_PORT,
   GITHUB_CLIENT_ID,
   GITHUB_CLIENT_SECRET,
   GITHUB_REPO_NAME,
   GITHUB_REPO_OWNER,
   GITHUB_WEBHOOK_SECRET,
-} = parsedEnv
+ } = parsedEnv
+
+export const octokit = new Octokit({
+  authStrategy: createAppAuth,
+  auth: {
+    clientId: GITHUB_CLIENT_ID,
+    clientSecret: GITHUB_CLIENT_SECRET,
+  }
+})
 
 export const initGitHub = () => {
   const app = Express()
@@ -59,15 +68,90 @@ export const initGitHub = () => {
     res.status(200).end()
     
     if ('comment' in req.body) {
-      GithubEventHandler.instance.handle(`issue-comment-${req.body.action}` as IssueCommentAction, req.body)
+      switch (req.body.action) {
+        case 'created':
+          GithubEventHandler.instance.onIssueCommentCreated(req.body)
+          break;
+        case 'deleted':
+          GithubEventHandler.instance.onIssueCommentDeleted(req.body)
+          break;
+        case 'edited':
+          GithubEventHandler.instance.onIssueCommentEdited(req.body)
+          break;
+        default:
+          break;
+      }
     }
 
     if ('label' in req.body) {
-      GithubEventHandler.instance.handle(`label-${req.body.action}` as LabelAction, req.body)
+      switch (req.body.action) {
+        case 'created':
+          GithubEventHandler.instance.onLabelCreated(req.body)
+          break;
+        case 'deleted':
+          GithubEventHandler.instance.onLabelDeleted(req.body)
+          break;
+        case 'edited':
+          GithubEventHandler.instance.onLabelEdited(req.body)
+          break;
+        default:
+          break;
+      }
     }
 
     if ('issue' in req.body) {
-      GithubEventHandler.instance.handle(`issue-${req.body.action}` as IssueAction, req.body)
+      switch (req.body.action) {
+        case 'assigned':
+          GithubEventHandler.instance.onIssueAssigned(req.body)
+          break;
+        case 'closed':
+          GithubEventHandler.instance.onIssueClosed(req.body)
+          break;
+        case 'deleted':
+          GithubEventHandler.instance.onIssueDeleted(req.body)
+          break;
+        case 'demilestoned':
+          GithubEventHandler.instance.onIssueDemilestoned(req.body)
+          break;
+        case 'edited':
+          GithubEventHandler.instance.onIssueEdited(req.body)
+          break;
+        case 'labeled':
+          GithubEventHandler.instance.onIssueLabeled(req.body)
+          break;
+        case 'locked':
+          GithubEventHandler.instance.onIssueLocked(req.body)
+          break;
+        case 'milestoned':
+          GithubEventHandler.instance.onIssueMilestoned(req.body)
+          break;
+        case 'opened':
+          GithubEventHandler.instance.onIssueOpened(req.body)
+          break;
+        case 'pinned':
+          GithubEventHandler.instance.onIssuePinned(req.body)
+          break;
+        case 'reopened':
+          GithubEventHandler.instance.onIssueReopened(req.body)
+          break;
+        case 'transferred':
+          GithubEventHandler.instance.onIssueTransferred(req.body)
+          break;
+        case 'unassigned':
+          GithubEventHandler.instance.onIssueUnassigned(req.body)
+          break;
+        case 'unlabeled':
+          GithubEventHandler.instance.onIssueUnlabeled(req.body)
+          break;
+        case 'unlocked':
+          GithubEventHandler.instance.onIssueUnlocked(req.body)
+          break;
+        case 'unpinned':
+          GithubEventHandler.instance.onIssueUnpinned(req.body)
+          break;
+        default:
+          break;
+      }
     }
   })
 

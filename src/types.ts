@@ -27,9 +27,17 @@ export type PayloadAction = IssueAction | IssueCommentAction | LabelAction;
 
 export type IssuePayloadAction<T extends PayloadAction> =
   T extends IssueCommentAction ? IssueCommentPayload
-  : T extends LabelAction ? LabelPayload : IssuePayload
+  : T extends LabelAction ? LabelPayload : IssuePayloadBase
 
-export type Assignee = {
+export type Repository = {
+  full_name: string;
+  id: number;
+  name: string;
+  node_id: string;
+  private: boolean;
+}
+
+export type User = {
   avatar_url: string | null;
   deleted: boolean;
   email: string | null;
@@ -52,19 +60,6 @@ export type Assignee = {
   type: 'Bot' | 'User' | 'Organization' | null;
   url: string | null;
   user_view_type: string | null;
-}
-
-export type Repository = {
-  full_name: string;
-  id: number;
-  name: string;
-  node_id: string;
-  private: boolean;
-}
-
-export type User = {
-  avatar_url: string;
-  email: string | null;
 }
 
 export type Label = {
@@ -142,8 +137,8 @@ export type SubIssueSummary = {
 
 export type Issue = {
   active_lock_reason: string | null;
-  assignee: Assignee | null;
-  assignees: Assignee[];
+  assignee: User | null;
+  assignees: User[];
   author_association: 'COLLABORATOR' | 'CONTRIBUTOR' | 'FIRST_TIMER' | 'FIRST_TIME_CONTRIBUTOR' | 'MANNEQUIN' | 'MEMBER' | 'NONE' | 'OWNER';
   body: string | null;
   closed_at: string | null;
@@ -174,29 +169,6 @@ export type Issue = {
   user: User;
 }
 
-export type IssuePayload = {
-  action: 'assigned'
-    | 'closed'
-    | 'deleted'
-    | 'demilestoned'
-    | 'edited'
-    | 'labeled'
-    | 'locked'
-    | 'milestoned'
-    | 'opened'
-    | 'pinned'
-    | 'reopened'
-    | 'transferred'
-    | 'unassigned'
-    | 'unlabeled'
-    | 'unlocked'
-    | 'unpinned';
-  assignee: Assignee | null;
-  issue: Issue;
-  repository: Repository;
-  sender: User;
-}
-
 export type Comment = {
   author_association: 'COLLABORATOR' | 'CONTRIBUTOR' | 'FIRST_TIMER' | 'FIRST_TIME_CONTRIBUTOR' | 'MANNEQUIN' | 'MEMBER' | 'NONE' | 'OWNER';
   body: string;
@@ -212,13 +184,164 @@ export type Comment = {
   user: User;
 }
 
+export type IssuePayloadBase = {
+  // action: 'assigned'
+  //   | 'closed'
+  //   | 'deleted'
+  //   | 'demilestoned'
+  //   | 'edited'
+  //   | 'labeled'
+  //   | 'locked'
+  //   | 'milestoned'
+  //   | 'opened'
+  //   | 'pinned'
+  //   | 'reopened'
+  //   | 'transferred'
+  //   | 'unassigned'
+  //   | 'unlabeled'
+  //   | 'unlocked'
+  //   | 'unpinned';
+  issue: Issue;
+  repository: Repository;
+  sender: User;
+}
+
+export type IssueAssignedPayload = IssuePayloadBase & {
+  action: 'assigned';
+  assignee: User;
+}
+
+export type IssueClosedPayload = IssuePayloadBase & {
+  action: 'closed';
+}
+
+export type IssueDeletedPayload = IssuePayloadBase & {
+  action: 'deleted';
+}
+
+export type IssueDemilestonedPayload = IssuePayloadBase & {
+  action: 'demilestoned';
+  milestone: Milestone;
+}
+
+export type IssueEditedPayload = IssuePayloadBase & {
+  action: 'edited';
+  changes: {
+    body: {
+      from: string;
+    };
+    title: {
+      from: string;
+    };
+  }
+}
+
+export type IssueLabeledPayload = IssuePayloadBase & {
+  action: 'labeled';
+  label: Label;
+}
+
+export type IssueLockedPayload = IssuePayloadBase & {
+  action: 'locked';
+}
+
+export type IssueMilestonedPayload = IssuePayloadBase & {
+  action: 'milestoned';
+  milestone: Milestone;
+}
+
+export type IssueOpenedPayload = IssuePayloadBase & {
+  action: 'opened';
+}
+
+export type IssuePinnedPayload = IssuePayloadBase & {
+  action: 'pinned';
+}
+
+export type IssueReopenedPayload = IssuePayloadBase & {
+  action: 'reopened';
+}
+
+export type IssueTransferredPayload = IssuePayloadBase & {
+  action: 'transferred';
+  changes: {
+    new_issue: Issue;
+    new_repository: Repository;
+  }
+}
+
+export type IssueUnassignedPayload = IssuePayloadBase & {
+  action: 'unassigned';
+  assignee: User;
+}
+
+export type IssueUnlabeledPayload = IssuePayloadBase & {
+  action: 'unlabeled';
+  label: Label;
+}
+
+export type IssueUnlockedPayload = IssuePayloadBase & {
+  action: 'unlocked';
+}
+
+export type IssueUnpinnedPayload = IssuePayloadBase & {
+  action: 'unpinned';
+}
+
 export type IssueCommentPayload = {
-  action: 'created';
   comment: Comment;
   issue: Issue;
   repository: Repository;
   sender: User;
 }
+
+export type IssueCommentCreatedPayload = IssueCommentPayload & {
+  action: 'created';
+}
+
+export type IssueCommentDeletedPayload = IssueCommentPayload & {
+  action: 'deleted';
+}
+
+export type IssueCommentEditedPayload = IssueCommentPayload & {
+  action: 'edited';
+  changes: {
+    body: {
+      from: string;
+    }
+  }
+}
+
+export type LabelPayload = {
+  label: Label;
+  repository: Repository;
+  sender: User;
+}
+
+export type LabelCreatedPayload = LabelPayload & {
+  action: 'created';
+}
+
+export type LabelDeletedPayload = LabelPayload & {
+  action: 'deleted';
+}
+
+export type LabelEditedPayload = LabelPayload & {
+  action: 'edited';
+  changes: {
+    color: {
+      from: string;
+    };
+    description: {
+      from: string;
+    };
+    name: {
+      from: string;
+    };
+  }
+}
+
+// [DEV] Implement sub issues
 
 export type SubIssue = {
   id: number;
@@ -236,8 +359,8 @@ export type SubIssue = {
   body: string | null;
   user: User;
   labels: Label[];
-  assignee: Assignee | null;
-  assignees: Assignee[];
+  assignee: User | null;
+  assignees: User[];
   milestone: Milestone | null;
   locked: boolean;
   active_lock_reason: string | null;
@@ -265,13 +388,6 @@ export type SubIssuePayload = {
   parent_issue_repo: Repository;
   sub_issue_id: number;
   sub_issue: SubIssue;
-  repository: Repository;
-  sender: User;
-}
-
-export type LabelPayload = {
-  action: 'created' | 'deleted' | 'edited';
-  label: Label;
   repository: Repository;
   sender: User;
 }

@@ -1,7 +1,30 @@
-import { AbstractHandler } from '../classes/handler';
-import { IssueAction, IssueCommentAction, IssueCommentPayload, IssuePayload, IssuePayloadAction, LabelAction, LabelPayload, PayloadAction } from '../types';
+import { DiscordHandler } from '../discord/handler.js';
+import type {
+  IssueAssignedPayload,
+  IssueClosedPayload,
+  IssueCommentCreatedPayload,
+  IssueCommentDeletedPayload,
+  IssueCommentEditedPayload,
+  IssueDeletedPayload,
+  IssueDemilestonedPayload,
+  IssueEditedPayload,
+  IssueLabeledPayload,
+  IssueLockedPayload,
+  IssueMilestonedPayload,
+  IssueOpenedPayload,
+  IssuePinnedPayload,
+  IssueReopenedPayload,
+  IssueTransferredPayload,
+  IssueUnassignedPayload,
+  IssueUnlabeledPayload,
+  IssueUnlockedPayload,
+  IssueUnpinnedPayload,
+  LabelCreatedPayload,
+  LabelDeletedPayload,
+  LabelEditedPayload
+} from '../types.js';
 
-export class GithubEventHandler extends AbstractHandler {
+export class GithubEventHandler {
   private static _instance: GithubEventHandler;
   public static get instance(): GithubEventHandler {
     if (!this._instance) {
@@ -11,123 +34,40 @@ export class GithubEventHandler extends AbstractHandler {
     return this._instance;
   }
 
-  private constructor() {
-    super();
-  }
-
-  public handle(type: IssueCommentAction, payload: IssueCommentPayload): void;
-  public handle(type: LabelAction, payload: LabelPayload): void;
-  public handle(type: IssueAction, payload: IssuePayload): void;
-  public handle<T extends PayloadAction>(type: T, payload: IssuePayloadAction<T>): void {
-    switch (type) {
-      // Comments
-      case 'issue-comment-created':
-        this.onIssueCommentCreated(payload as IssueCommentPayload);
-        break;
-      case 'issue-comment-deleted':
-        this.onIssueCommentDeleted(payload as IssueCommentPayload);
-        break;
-      case 'issue-comment-edited':
-        this.onIssueCommentEdited(payload as IssueCommentPayload);
-        break;
-
-      // Labels
-      case 'label-created':
-        this.onLabelCreated(payload as LabelPayload);
-        break;
-      case 'label-deleted':
-        this.onLabelDeleted(payload as LabelPayload);
-        break;
-      case 'label-edited':
-        this.onLabelEdited(payload as LabelPayload);
-        break;
-
-      // Issues
-      case 'issue-assigned':
-        this.onIssueAssigned(payload as IssuePayload);
-        break;
-      case 'issue-closed':
-        this.onIssueClosed(payload as IssuePayload);
-        break;
-      case 'issue-deleted':
-        this.onIssueDeleted(payload as IssuePayload);
-        break;
-      case 'issue-demilestoned':
-        this.onIssueDemilestoned(payload as IssuePayload);
-        break;
-      case 'issue-edited':
-        this.onIssueEdited(payload as IssuePayload);
-        break;
-      case 'issue-labeled':
-        this.onIssueLabeled(payload as IssuePayload);
-        break;
-      case 'issue-locked':
-        this.onIssueLocked(payload as IssuePayload);
-        break;
-      case 'issue-milestoned':
-        this.onIssueMilestoned(payload as IssuePayload);
-        break;
-      case 'issue-opened':
-        this.onIssueOpened(payload as IssuePayload);
-        break;
-      case 'issue-pinned':
-        this.onIssuePinned(payload as IssuePayload);
-        break;
-      case 'issue-reopened':
-        this.onIssueReopened(payload as IssuePayload);
-        break;
-      case 'issue-transferred':
-        this.onIssueTransferred(payload as IssuePayload);
-        break;
-      case 'issue-unassigned':
-        this.onIssueUnassigned(payload as IssuePayload);
-        break;
-      case 'issue-unlabeled':
-        this.onIssueUnlabeled(payload as IssuePayload);
-        break;
-      case 'issue-unlocked':
-        this.onIssueUnlocked(payload as IssuePayload);
-        break;
-      case 'issue-unpinned':
-        this.onIssueUnpinned(payload as IssuePayload);
-        break;
-      
-      // Fallthrough
-      default:
-        console.warn(`Unhandled payload type: ${type}`);
-        break;
-    }
-  }
+  private constructor() {}
 
   // 
   // Start Comments
   // 
 
-  private onIssueCommentCreated(payload: IssueCommentPayload) {
+  public async onIssueCommentCreated(payload: IssueCommentCreatedPayload) {
     console.log(`Comment created: ${payload.comment.body}`);
+    DiscordHandler.onIssueCommentCreated(payload);
   }
 
-  private onIssueCommentDeleted(payload: IssueCommentPayload) {
+  public async onIssueCommentDeleted(payload: IssueCommentDeletedPayload) {
     console.log(`Comment deleted: ${payload.comment.body}`);
+    DiscordHandler.onIssueCommentDeleted(payload);
   }
 
-  private onIssueCommentEdited(payload: IssueCommentPayload) {
+  public async onIssueCommentEdited(payload: IssueCommentEditedPayload) {
     console.log(`Comment edited: ${payload.comment.body}`);
+    DiscordHandler.onIssueCommentEdited(payload);
   }
 
   // 
   // Start Labels
   // 
 
-  private onLabelCreated(payload: LabelPayload) {
+  public async onLabelCreated(payload: LabelCreatedPayload) {
     console.log(`Label created: ${payload.label.name}`);
   }
 
-  private onLabelDeleted(payload: LabelPayload) {
+  public async onLabelDeleted(payload: LabelDeletedPayload) {
     console.log(`Label deleted: ${payload.label.name}`);
   }
 
-  private onLabelEdited(payload: LabelPayload) {
+  public async onLabelEdited(payload: LabelEditedPayload) {
     console.log(`Label edited: ${payload.label.name}`);
   }
 
@@ -135,67 +75,67 @@ export class GithubEventHandler extends AbstractHandler {
   // Start Issues
   // 
 
-  private onIssueAssigned(payload: IssuePayload) {
+  public async onIssueAssigned(payload: IssueAssignedPayload) {
     console.log(`Issue assigned: ${payload.issue.title}`);
   }
 
-  private onIssueClosed(payload: IssuePayload) {
+  public async onIssueClosed(payload: IssueClosedPayload) {
     console.log(`Issue closed: ${payload.issue.title}`);
   }
 
-  private onIssueDeleted(payload: IssuePayload) {
+  public async onIssueDeleted(payload: IssueDeletedPayload) {
     console.log(`Issue deleted: ${payload.issue.title}`);
   }
 
-  private onIssueDemilestoned(payload: IssuePayload) {
+  public async onIssueDemilestoned(payload: IssueDemilestonedPayload) {
     console.log(`Issue demilestoned: ${payload.issue.title}`);
   }
 
-  private onIssueEdited(payload: IssuePayload) {
+  public async onIssueEdited(payload: IssueEditedPayload) {
     console.log(`Issue edited: ${payload.issue.title}`);
   }
 
-  private onIssueLabeled(payload: IssuePayload) {
+  public async onIssueLabeled(payload: IssueLabeledPayload) {
     console.log(`Issue labeled: ${payload.issue.title}`);
   }
 
-  private onIssueLocked(payload: IssuePayload) {
+  public async onIssueLocked(payload: IssueLockedPayload) {
     console.log(`Issue locked: ${payload.issue.title}`);
   }
 
-  private onIssueMilestoned(payload: IssuePayload) {
+  public async onIssueMilestoned(payload: IssueMilestonedPayload) {
     console.log(`Issue milestoned: ${payload.issue.title}`);
   }
 
-  private onIssueOpened(payload: IssuePayload) {
+  public async onIssueOpened(payload: IssueOpenedPayload) {
     console.log(`Issue opened: ${payload.issue.title}`);
   }
 
-  private onIssuePinned(payload: IssuePayload) {
+  public async onIssuePinned(payload: IssuePinnedPayload) {
     console.log(`Issue pinned: ${payload.issue.title}`);
   }
 
-  private onIssueReopened(payload: IssuePayload) {
+  public async onIssueReopened(payload: IssueReopenedPayload) {
     console.log(`Issue reopened: ${payload.issue.title}`);
   }
 
-  private onIssueTransferred(payload: IssuePayload) {
+  public async onIssueTransferred(payload: IssueTransferredPayload) {
     console.log(`Issue transferred: ${payload.issue.title}`);
   }
 
-  private onIssueUnassigned(payload: IssuePayload) {
+  public async onIssueUnassigned(payload: IssueUnassignedPayload) {
     console.log(`Issue unassigned: ${payload.issue.title}`);
   }
 
-  private onIssueUnlabeled(payload: IssuePayload) {
+  public async onIssueUnlabeled(payload: IssueUnlabeledPayload) {
     console.log(`Issue unlabeled: ${payload.issue.title}`);
   }
 
-  private onIssueUnlocked(payload: IssuePayload) {
+  public async onIssueUnlocked(payload: IssueUnlockedPayload) {
     console.log(`Issue unlocked: ${payload.issue.title}`);
   }
 
-  private onIssueUnpinned(payload: IssuePayload) {
+  public async onIssueUnpinned(payload: IssueUnpinnedPayload) {
     console.log(`Issue unpinned: ${payload.issue.title}`);
   }
 }

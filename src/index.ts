@@ -1,7 +1,6 @@
-import { initDiscord } from './discord/init';
-import { parsedEnv } from './env';
-import { initGitHub } from './github/init';
-import pkg from '../package.json';
+import { initDiscord } from './discord/init.js';
+import { parsedEnv } from './env.js';
+import { initGitHub } from './github/init.js';
 
 /**
   Copyright (C) 2025 Richard Hillebrand
@@ -22,6 +21,12 @@ import pkg from '../package.json';
   __*THIS LICENSE APPLIES TO THE ENTIRE REPOSITORY, NOT JUST THIS FILE.*__
  */
 const main = async () => {
+  const { default: pkg } = await import("../package.json", {
+    assert: {
+      type: "json",
+    },
+  });
+
   console.log(`[${pkg.name}] v${pkg.version} - ${pkg.description}`);
   console.log(`[${pkg.name}] Author: ${pkg.author.name} <${pkg.author.email}> (${pkg.author.url})`);
   console.log(`[${pkg.name}] License: ${pkg.license}`);

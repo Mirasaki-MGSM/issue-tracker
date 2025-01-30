@@ -1,13 +1,15 @@
 {
   "name": "mgsm-issue-tracker",
-  "version": "1.0.0",
+  "version": "0.0.1",
+  "type": "module",
   "description": "Public-facing issue tracker for MGSM, the game-server monetization platform.",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsup src/index.ts --minify --dts --format cjs,esm --out-dir dist",
     "dev": "tsup src/index.ts --dts --format cjs,esm --out-dir dist --watch --onSuccess \"node dist/index.js --env=.env.local\"",
     "start": "node dist/index.js --env=.env.local",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "typecheck": "tsc --noEmit"
   },
   "repository": {
     "type": "git",
@@ -43,6 +45,7 @@
     "body-parser": "^1.20.3",
     "discord.js": "^14.17.3",
     "dotenv": "^16.4.7",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "octokit": "^4.1.0"
   }
 }
