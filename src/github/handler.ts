@@ -53,6 +53,10 @@ export class GithubEventHandler {
 
   public async onIssueCommentCreated(payload: IssueCommentCreatedPayload) {
     console.log(`Comment created: ${payload.comment.body}`);
+    console.dir({
+      sender: payload.sender,
+      user: payload.comment.user,
+    })
     if (GithubEventHandler.isAppUser(payload.sender)) {
       console.log(`Comment created by bot, ignoring.`);
       return;
