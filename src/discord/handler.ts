@@ -208,10 +208,15 @@ export class DiscordHandler {
 
     // Post comments on GitHub if messages are sent in Discord threads. (onIssueCommentCreated)
     DiscordHandler.client.on('messageCreate', async (message) => {
+      if (message.channel.isDMBased()) {
+        return;
+      }
+      
       console.log({
         threadId: message.thread?.id,
         threadParentId: message.thread?.parent?.id,
         channelId: message.channel.id,
+        channelParentId: message.channel.parent?.id,
         listenChannelId: parsedEnv.DISCORD_CHANNEL_ID,
       })
       if (!message.thread || !message.thread.parent || message.author.bot) {
