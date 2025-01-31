@@ -208,30 +208,18 @@ export class DiscordHandler {
 
     // Post comments on GitHub if messages are sent in Discord threads. (onIssueCommentCreated)
     DiscordHandler.client.on('messageCreate', async (message) => {
-      if (message.channel.isDMBased()) {
-        return;
-      }
-      
-      console.log({
-        threadId: message.thread?.id,
-        threadParentId: message.thread?.parent?.id,
-        channelId: message.channel.id,
-        channelParentId: message.channel.parent?.id,
-        listenChannelId: parsedEnv.DISCORD_CHANNEL_ID,
-      })
-      if (!message.thread || !message.thread.parent || message.author.bot) {
+      if (message.channel.isDMBased() || message.author.bot || !message.channel || !message.channel.parent) {
         return;
       }
 
-      if (message.thread.parent.id !== parsedEnv.DISCORD_CHANNEL_ID) {
+      if (message.channel.parent.id !== parsedEnv.DISCORD_CHANNEL_ID) {
         return;
       }
 
-      const thread = message.thread;
-      const issueId = DiscordBuilders.idFromThreadName(thread.name);
+      const issueId = DiscordBuilders.idFromThreadName(message.channel.name);
 
       if (isNaN(issueId)) {
-        console.error(`Failed to parse issue ID from thread name ${thread.name}.`)
+        console.error(`Failed to parse issue ID from thread name ${message.channel.name}.`)
         return;
       }
 
@@ -258,19 +246,18 @@ export class DiscordHandler {
 
     // Remove GitHub comments when Discord messages are deleted. (onIssueCommentDeleted)
     DiscordHandler.client.on('messageDelete', async (message) => {
-      if (!message.thread || message.author?.bot || !message.thread.parent) {
+      if (message.channel.isDMBased() || message.author?.bot || !message.channel || !message.channel.parent) {
         return;
       }
 
-      if (message.thread.parent.id !== parsedEnv.DISCORD_CHANNEL_ID) {
+      if (message.channel.parent.id !== parsedEnv.DISCORD_CHANNEL_ID) {
         return;
       }
 
-      const thread = message.thread;
-      const issueId = DiscordBuilders.idFromThreadName(thread.name);
+      const issueId = DiscordBuilders.idFromThreadName(message.channel.name);
 
       if (isNaN(issueId)) {
-        console.error(`Failed to parse issue ID from thread name ${thread.name}.`)
+        console.error(`Failed to parse issue ID from thread name ${message.channel.name}.`)
         return;
       }
 
@@ -305,23 +292,22 @@ export class DiscordHandler {
 
     // Edit GitHub comments when Discord messages are edited. (onIssueCommentEdited)
     DiscordHandler.client.on('messageUpdate', async (oldMessage, newMessage) => {
-      if (!oldMessage.thread || oldMessage.author?.bot || !oldMessage.thread.parent) {
+      if (oldMessage.channel.isDMBased() || oldMessage.author?.bot || !oldMessage.channel || !oldMessage.channel.parent) {
         return;
       }
 
-      if (oldMessage.thread.parent.id !== parsedEnv.DISCORD_CHANNEL_ID) {
+      if (oldMessage.channel.parent.id !== parsedEnv.DISCORD_CHANNEL_ID) {
         return;
       }
 
-      const thread = oldMessage.thread;
-      const issueId = DiscordBuilders.idFromThreadName(thread.name);
+      const issueId = DiscordBuilders.idFromThreadName(oldMessage.channel.name);
 
       if (isNaN(issueId)) {
-        console.error(`Failed to parse issue ID from thread name ${thread.name}.`)
+        console.error(`Failed to parse issue ID from thread name ${oldMessage.channel.name}.`)
         return;
       }
 
-      const isPrimaryThreadMessage = await thread.messages.fetch({ limit: 1 }).then((messages) => messages.first()?.id === oldMessage.id)
+      const isPrimaryThreadMessage = await oldMessage.channel.messages.fetch({ limit: 1 }).then((messages) => messages.first()?.id === oldMessage.id)
 
       if (isPrimaryThreadMessage) {
         // Update the issue body if the primary thread message is edited. (onIssueEdited)
