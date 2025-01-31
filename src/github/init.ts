@@ -75,7 +75,7 @@ export const initGitHub = () => {
         return;
       }
     }
-    
+
     if ('comment' in req.body) {
       switch (req.body.action) {
         case 'created':
@@ -90,6 +90,7 @@ export const initGitHub = () => {
         default:
           break;
       }
+      return;
     }
 
     if ('label' in req.body) {
@@ -106,6 +107,7 @@ export const initGitHub = () => {
         default:
           break;
       }
+      return;
     }
 
     if ('issue' in req.body) {
@@ -161,6 +163,7 @@ export const initGitHub = () => {
         default:
           break;
       }
+      return;
     }
   })
 
