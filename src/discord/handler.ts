@@ -165,6 +165,13 @@ export class DiscordHandler {
     ],
   })
 
+  /**
+   * A map of GitHub issue IDs to Discord thread IDs, for user-created posts.
+   * If an id is in here when an issue is created (github event), the user thread
+   * should be deleted, and the user directed to the new thread
+   */
+  private static consumeUserCreatedPosts = new Map<number, string>()
+
   private constructor() {}
 
   static init = async (): Promise<void> => {
@@ -554,6 +561,8 @@ export class DiscordHandler {
         labels: thread.appliedTags.map((tag) => channel.availableTags.find((t) => t.id === tag)?.name)
           .filter((label) => typeof label === 'string'),
       })
+
+      this.consumeUserCreatedPosts.set(issue.data.id, thread.id)
 
       await thread.setName(DiscordBuilders.issueThreadName(issue.data))
     });
@@ -981,7 +990,35 @@ export class DiscordHandler {
   }
 
   public static async onIssueOpened(payload: IssueOpenedPayload) {
-    return DiscordHandler.createThreadFromIssue(payload.issue);
+    const newThread = await DiscordHandler.createThreadFromIssue(payload.issue);
+
+    const consumeEntry = DiscordHandler.consumeUserCreatedPosts.get(payload.issue.id);
+    if (consumeEntry) {
+      DiscordHandler.consumeUserCreatedPosts.delete(payload.issue.id);
+
+      const channel = await DiscordHandler.getChannel();
+      const oldThread = await channel.threads.fetch(consumeEntry);
+
+      if (oldThread) {
+        await oldThread.send({
+          content: [
+            `🆕 Issue created, please navigate to the new thread: [${newThread.name}](${newThread.url}).`,
+            `\nThis thread will now be locked, and will be deleted in 5 minutes.`,
+          ].join('\n'),
+          allowedMentions: defaultAllowedMentions,
+        })
+        await oldThread.edit({
+          archived: true,
+          locked: true,
+          reason: `Issue ${payload.issue.id} created, redirecting to new thread ${newThread.id}.`,
+        })
+        await new Promise((resolve) => setTimeout(resolve, 1000 * 60 * 5));
+        await oldThread.delete(`Issue ${payload.issue.id} created, odl thread expired.`);
+      }
+
+    }
+
+    return newThread;
   }
 
   public static async onIssuePinned(payload: IssuePinnedPayload) {
