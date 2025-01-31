@@ -271,7 +271,6 @@ export class DiscordHandler {
       })
 
       if (comments.status === 404) {
-        console.error(`Failed to fetch comments for issue ${issueNumber} from GitHub API.`)
         return;
       }
 
@@ -344,7 +343,6 @@ export class DiscordHandler {
       })
 
       if (comments.status === 404) {
-        console.error(`Failed to fetch comments for issue ${issueNumber} from GitHub API.`)
         return;
       }
 

@@ -26,10 +26,6 @@ import type {
   User
 } from '../types.js';
 
-const {
-  GITHUB_APP_ID
-} = parsedEnv;
-
 export class GithubEventHandler {
   private static _instance: GithubEventHandler;
   public static get instance(): GithubEventHandler {
@@ -42,9 +38,8 @@ export class GithubEventHandler {
 
   private constructor() {}
 
-  private static appId: number = parseInt(GITHUB_APP_ID);
-  private static isAppUser(user: User): boolean {
-    return user.type === 'Bot' && user.id === this.appId;
+  private static isBotAction(user: User): boolean {
+    return user.type === 'Bot';
   }
 
   // 
@@ -53,11 +48,7 @@ export class GithubEventHandler {
 
   public async onIssueCommentCreated(payload: IssueCommentCreatedPayload) {
     console.log(`Comment created: ${payload.comment.body}`);
-    console.dir({
-      sender: payload.sender,
-      user: payload.comment.user,
-    })
-    if (GithubEventHandler.isAppUser(payload.sender)) {
+    if (GithubEventHandler.isBotAction(payload.sender)) {
       console.log(`Comment created by bot, ignoring.`);
       return;
     }
@@ -66,7 +57,7 @@ export class GithubEventHandler {
 
   public async onIssueCommentDeleted(payload: IssueCommentDeletedPayload) {
     console.log(`Comment deleted: ${payload.comment.body}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
+    if (GithubEventHandler.isBotAction(payload.sender)) {
       console.log(`Comment deleted by bot, ignoring.`);
       return;
     }
@@ -75,7 +66,7 @@ export class GithubEventHandler {
 
   public async onIssueCommentEdited(payload: IssueCommentEditedPayload) {
     console.log(`Comment edited: ${payload.comment.body}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
+    if (GithubEventHandler.isBotAction(payload.sender)) {
       console.log(`Comment edited by bot, ignoring.`);
       return;
     }
@@ -88,7 +79,7 @@ export class GithubEventHandler {
 
   public async onLabelCreated(payload: LabelCreatedPayload) {
     console.log(`Label created: ${payload.label.name}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
+    if (GithubEventHandler.isBotAction(payload.sender)) {
       console.log(`Label created by bot, ignoring.`);
       return;
     }
@@ -97,7 +88,7 @@ export class GithubEventHandler {
 
   public async onLabelDeleted(payload: LabelDeletedPayload) {
     console.log(`Label deleted: ${payload.label.name}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
+    if (GithubEventHandler.isBotAction(payload.sender)) {
       console.log(`Label deleted by bot, ignoring.`);
       return;
     }
@@ -106,7 +97,7 @@ export class GithubEventHandler {
 
   public async onLabelEdited(payload: LabelEditedPayload) {
     console.log(`Label edited: ${payload.label.name}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
+    if (GithubEventHandler.isBotAction(payload.sender)) {
       console.log(`Label edited by bot, ignoring.`);
       return;
     }
@@ -124,7 +115,7 @@ export class GithubEventHandler {
 
   public async onIssueClosed(payload: IssueClosedPayload) {
     console.log(`Issue closed: ${payload.issue.title}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
+    if (GithubEventHandler.isBotAction(payload.sender)) {
       console.log(`Issue closed by bot, ignoring.`);
       return;
     }
@@ -133,7 +124,7 @@ export class GithubEventHandler {
 
   public async onIssueDeleted(payload: IssueDeletedPayload) {
     console.log(`Issue deleted: ${payload.issue.title}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
+    if (GithubEventHandler.isBotAction(payload.sender)) {
       console.log(`Issue deleted by bot, ignoring.`);
       return;
     }
@@ -147,7 +138,7 @@ export class GithubEventHandler {
 
   public async onIssueEdited(payload: IssueEditedPayload) {
     console.log(`Issue edited: ${payload.issue.title}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
+    if (GithubEventHandler.isBotAction(payload.sender)) {
       console.log(`Issue edited by bot, ignoring.`);
       return;
     }
@@ -156,7 +147,7 @@ export class GithubEventHandler {
 
   public async onIssueLabeled(payload: IssueLabeledPayload) {
     console.log(`Issue labeled: ${payload.issue.title}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
+    if (GithubEventHandler.isBotAction(payload.sender)) {
       console.log(`Issue labeled by bot, ignoring.`);
       return;
     }
@@ -165,7 +156,7 @@ export class GithubEventHandler {
 
   public async onIssueLocked(payload: IssueLockedPayload) {
     console.log(`Issue locked: ${payload.issue.title}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
+    if (GithubEventHandler.isBotAction(payload.sender)) {
       console.log(`Issue locked by bot, ignoring.`);
       return;
     }
@@ -179,16 +170,14 @@ export class GithubEventHandler {
 
   public async onIssueOpened(payload: IssueOpenedPayload) {
     console.log(`Issue opened: ${payload.issue.title}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
-      console.log(`Issue opened by bot, ignoring.`);
-      return;
-    }
+    // Note: We do want to listen to bot actions here, as we consume user-created
+    // posts in Discord, and create a GitHub issue from them.
     DiscordHandler.onIssueOpened(payload);
   }
 
   public async onIssuePinned(payload: IssuePinnedPayload) {
     console.log(`Issue pinned: ${payload.issue.title}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
+    if (GithubEventHandler.isBotAction(payload.sender)) {
       console.log(`Issue pinned by bot, ignoring.`);
       return;
     }
@@ -197,7 +186,7 @@ export class GithubEventHandler {
 
   public async onIssueReopened(payload: IssueReopenedPayload) {
     console.log(`Issue reopened: ${payload.issue.title}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
+    if (GithubEventHandler.isBotAction(payload.sender)) {
       console.log(`Issue reopened by bot, ignoring.`);
       return;
     }
@@ -216,7 +205,7 @@ export class GithubEventHandler {
 
   public async onIssueUnlabeled(payload: IssueUnlabeledPayload) {
     console.log(`Issue unlabeled: ${payload.issue.title}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
+    if (GithubEventHandler.isBotAction(payload.sender)) {
       console.log(`Issue unlabeled by bot, ignoring.`);
       return;
     }
@@ -225,7 +214,7 @@ export class GithubEventHandler {
 
   public async onIssueUnlocked(payload: IssueUnlockedPayload) {
     console.log(`Issue unlocked: ${payload.issue.title}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
+    if (GithubEventHandler.isBotAction(payload.sender)) {
       console.log(`Issue unlocked by bot, ignoring.`);
       return;
     }
@@ -234,7 +223,7 @@ export class GithubEventHandler {
 
   public async onIssueUnpinned(payload: IssueUnpinnedPayload) {
     console.log(`Issue unpinned: ${payload.issue.title}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
+    if (GithubEventHandler.isBotAction(payload.sender)) {
       console.log(`Issue unpinned by bot, ignoring.`);
       return;
     }
