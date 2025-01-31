@@ -1011,6 +1011,7 @@ export class DiscordHandler {
           archived: true,
           locked: true,
           reason: `Issue ${payload.issue.id} created, redirecting to new thread ${newThread.id}.`,
+          name: oldThread.name.replace('issue-', 'moved-'),
         })
         await new Promise((resolve) => setTimeout(resolve, 1000 * 60 * 5));
         await oldThread.delete(`Issue ${payload.issue.id} created, odl thread expired.`);
