@@ -527,7 +527,7 @@ export class DiscordHandler {
         return;
       }
 
-      await octokit.request('DELETE /repos/{owner}/{repo}/issues/{issue_number}', {
+      await octokit.request('DELETE /repos/{owner}/{repo}/issues/{issue_number}/lock', {
         owner: parsedEnv.GITHUB_REPO_OWNER,
         repo: parsedEnv.GITHUB_REPO_NAME,
         issue_number: issueNumber
