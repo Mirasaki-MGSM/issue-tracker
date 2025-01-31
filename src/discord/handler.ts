@@ -61,8 +61,8 @@ export const maxLengthText = (text: string, maxLength: number): string => {
 }
 
 export class DiscordBuilders {
-  static idFromThreadName = (name: string): number => parseInt(name.match(/\[issue-(\d+)\]/)?.[1] ?? 'isNaN')
-  static issueThreadName = (issue: Issue): string => maxLengthText(`[issue-${issue.id}] ${issue.title}`, 100)
+  static issueNumberFromThreadName = (name: string): number => parseInt(name.match(/\[issue-(\d+)\]/)?.[1] ?? 'isNaN')
+  static issueThreadName = (issue: Issue): string => maxLengthText(`[issue-${issue.number}] ${issue.title}`, 100)
 
   static issueLinkButton = (issue: Issue): ButtonBuilder => new ButtonBuilder()
     .setStyle(ButtonStyle.Link)
@@ -116,8 +116,8 @@ export class DiscordBuilders {
   static issueDebugFile = (issue: Issue): AttachmentBuilder => new AttachmentBuilder(
     Buffer.from(JSON.stringify(issue, null, 2), 'utf-8')
   )
-    .setName(`issue-${issue.id}.json`)
-    .setDescription(`Debug information for issue ${issue.id}.`)
+    .setName(`issue-${issue.number}.json`)
+    .setDescription(`Debug information for issue ${issue.number}.`)
     .setSpoiler(true)
 
   static commentLinkButton = (comment: IssueCommentPayload['comment']): ButtonBuilder => new ButtonBuilder()
@@ -216,19 +216,19 @@ export class DiscordHandler {
         return;
       }
 
-      const issueId = DiscordBuilders.idFromThreadName(message.channel.name);
+      const issueNumber = DiscordBuilders.issueNumberFromThreadName(message.channel.name);
 
-      if (isNaN(issueId)) {
+      if (isNaN(issueNumber)) {
         console.error(`Failed to parse issue ID from thread name ${message.channel.name}.`)
         return;
       }
 
-      const issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_id}', {
+      const issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}', {
         owner: parsedEnv.GITHUB_REPO_OWNER,
         repo: parsedEnv.GITHUB_REPO_NAME,
-        issue_id: issueId,
+        issue_number: issueNumber
       }).catch((e) => {
-        console.error(`Failed to fetch issue ${issueId} from GitHub API: ${e}`)
+        console.error(`Failed to fetch issue ${issueNumber} from GitHub API: ${e}`)
         return { status: 404 }
       })
 
@@ -236,10 +236,10 @@ export class DiscordHandler {
         return;
       }
 
-      await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_id}/comments', {
+      await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
         owner: parsedEnv.GITHUB_REPO_OWNER,
         repo: parsedEnv.GITHUB_REPO_NAME,
-        issue_id: issueId,
+        issue_number: issueNumber,
         body: `> **${message.author.username}**: ${message.content}`,
       })
     });
@@ -254,24 +254,24 @@ export class DiscordHandler {
         return;
       }
 
-      const issueId = DiscordBuilders.idFromThreadName(message.channel.name);
+      const issueNumber = DiscordBuilders.issueNumberFromThreadName(message.channel.name);
 
-      if (isNaN(issueId)) {
+      if (isNaN(issueNumber)) {
         console.error(`Failed to parse issue ID from thread name ${message.channel.name}.`)
         return;
       }
 
-      const comments = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_id}/comments', {
+      const comments = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
         owner: parsedEnv.GITHUB_REPO_OWNER,
         repo: parsedEnv.GITHUB_REPO_NAME,
-        issue_id: issueId,
+        issue_number: issueNumber
       }).catch((e) => {
-        console.error(`Failed to fetch comments for issue ${issueId} from GitHub API: ${e}`)
+        console.error(`Failed to fetch comments for issue ${issueNumber} from GitHub API: ${e}`)
         return { status: 404 }
       })
 
       if (comments.status === 404) {
-        console.error(`Failed to fetch comments for issue ${issueId} from GitHub API.`)
+        console.error(`Failed to fetch comments for issue ${issueNumber} from GitHub API.`)
         return;
       }
 
@@ -300,9 +300,9 @@ export class DiscordHandler {
         return;
       }
 
-      const issueId = DiscordBuilders.idFromThreadName(oldMessage.channel.name);
+      const issueNumber = DiscordBuilders.issueNumberFromThreadName(oldMessage.channel.name);
 
-      if (isNaN(issueId)) {
+      if (isNaN(issueNumber)) {
         console.error(`Failed to parse issue ID from thread name ${oldMessage.channel.name}.`)
         return;
       }
@@ -311,12 +311,12 @@ export class DiscordHandler {
 
       if (isPrimaryThreadMessage) {
         // Update the issue body if the primary thread message is edited. (onIssueEdited)
-        const issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_id}', {
+        const issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}', {
           owner: parsedEnv.GITHUB_REPO_OWNER,
           repo: parsedEnv.GITHUB_REPO_NAME,
-          issue_id: issueId,
+          issue_number: issueNumber
         }).catch((e) => {
-          console.error(`Failed to fetch issue ${issueId} from GitHub API: ${e}`)
+          console.error(`Failed to fetch issue ${issueNumber} from GitHub API: ${e}`)
           return { status: 404 }
         })
 
@@ -324,27 +324,27 @@ export class DiscordHandler {
           return;
         }
 
-        await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_id}', {
+        await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
           owner: parsedEnv.GITHUB_REPO_OWNER,
           repo: parsedEnv.GITHUB_REPO_NAME,
-          issue_id: issueId,
+          issue_number: issueNumber,
           body: `${newMessage.content}\n\nCreated by ${newMessage.author.username} on [Discord](${newMessage.url})`,
         })
 
         return;
       }
 
-      const comments = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_id}/comments', {
+      const comments = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
         owner: parsedEnv.GITHUB_REPO_OWNER,
         repo: parsedEnv.GITHUB_REPO_NAME,
-        issue_id: issueId,
+        issue_number: issueNumber
       }).catch((e) => {
-        console.error(`Failed to fetch comments for issue ${issueId} from GitHub API: ${e}`)
+        console.error(`Failed to fetch comments for issue ${issueNumber} from GitHub API: ${e}`)
         return { status: 404 }
       })
 
       if (comments.status === 404) {
-        console.error(`Failed to fetch comments for issue ${issueId} from GitHub API.`)
+        console.error(`Failed to fetch comments for issue ${issueNumber} from GitHub API.`)
         return;
       }
 
@@ -398,19 +398,19 @@ export class DiscordHandler {
       //   const pinned = threads.threads.find(thread => thread.flags.has(ChannelFlags.Pinned))
 
       //   if (pinned) {
-      //     const issueId = DiscordBuilders.idFromThreadName(thread.name);
+      //     const issueNumber = DiscordBuilders.issueNumberFromThreadName(thread.name);
 
-      //     if (isNaN(issueId)) {
+      //     if (isNaN(issueNumber)) {
       //       console.error(`Failed to parse issue ID from thread name ${pinned.name}.`)
       //       return;
       //     }
 
-      //     const issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_id}', {
+      //     const issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}', {
       //       owner: parsedEnv.GITHUB_REPO_OWNER,
       //       repo: parsedEnv.GITHUB_REPO_NAME,
-      //       issue_id: issueId,
+      //       issue_number: issueNumber
       //     }).catch((e) => {
-      //       console.error(`Failed to fetch issue ${issueId} from GitHub API: ${e}`)
+      //       console.error(`Failed to fetch issue ${issueNumber} from GitHub API: ${e}`)
       //       return { status: 404 }
       //     })
 
@@ -418,10 +418,10 @@ export class DiscordHandler {
       //       return;
       //     }
 
-      //     await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_id}', {
+      //     await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
       //       owner: parsedEnv.GITHUB_REPO_OWNER,
       //       repo: parsedEnv.GITHUB_REPO_NAME,
-      //       issue_id: issueId,
+      //       issue_number: issueNumber
       //       pinned: true,
       //     })
       //   }
@@ -431,18 +431,18 @@ export class DiscordHandler {
         (!oldThread.archived && newThread.archived)
         || (!oldThread.locked && newThread.locked)
       ) {
-        const issueId = DiscordBuilders.idFromThreadName(oldThread.name);
-        if (isNaN(issueId)) {
+        const issueNumber = DiscordBuilders.issueNumberFromThreadName(oldThread.name);
+        if (isNaN(issueNumber)) {
           console.error(`Failed to parse issue ID from thread name ${oldThread.name}.`)
           return;
         }
 
-        const issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_id}', {
+        const issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}', {
           owner: parsedEnv.GITHUB_REPO_OWNER,
           repo: parsedEnv.GITHUB_REPO_NAME,
-          issue_id: issueId,
+          issue_number: issueNumber
         }).catch((e) => {
-          console.error(`Failed to fetch issue ${issueId} from GitHub API: ${e}`)
+          console.error(`Failed to fetch issue ${issueNumber} from GitHub API: ${e}`)
           return { status: 404 }
         })
 
@@ -450,28 +450,28 @@ export class DiscordHandler {
           return;
         }
 
-        await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_id}', {
+        await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
           owner: parsedEnv.GITHUB_REPO_OWNER,
           repo: parsedEnv.GITHUB_REPO_NAME,
-          issue_id: issueId,
+          issue_number: issueNumber,
           state: 'closed',
         })
       }
 
       // When a tag is added on Discord, add the label on GitHub.
       if (oldThread.appliedTags.length !== newThread.appliedTags.length) {
-        const issueId = DiscordBuilders.idFromThreadName(oldThread.name);
-        if (isNaN(issueId)) {
+        const issueNumber = DiscordBuilders.issueNumberFromThreadName(oldThread.name);
+        if (isNaN(issueNumber)) {
           console.error(`Failed to parse issue ID from thread name ${oldThread.name}.`)
           return;
         }
 
-        const issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_id}', {
+        const issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}', {
           owner: parsedEnv.GITHUB_REPO_OWNER,
           repo: parsedEnv.GITHUB_REPO_NAME,
-          issue_id: issueId,
+          issue_number: issueNumber
         }).catch((e) => {
-          console.error(`Failed to fetch issue ${issueId} from GitHub API: ${e}`)
+          console.error(`Failed to fetch issue ${issueNumber} from GitHub API: ${e}`)
           return { status: 404 }
         });
 
@@ -481,10 +481,10 @@ export class DiscordHandler {
 
         const channel = await DiscordHandler.getChannel();
 
-        await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_id}', {
+        await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
           owner: parsedEnv.GITHUB_REPO_OWNER,
           repo: parsedEnv.GITHUB_REPO_NAME,
-          issue_id: issueId,
+          issue_number: issueNumber,
           labels: newThread.appliedTags.map((tag) => channel.availableTags.find((t) => t.id === tag)?.name)
             .filter((label) => typeof label === 'string'),
         })
@@ -510,18 +510,18 @@ export class DiscordHandler {
         return;
       }
 
-      const issueId = DiscordBuilders.idFromThreadName(thread.name);
-      if (isNaN(issueId)) {
+      const issueNumber = DiscordBuilders.issueNumberFromThreadName(thread.name);
+      if (isNaN(issueNumber)) {
         console.error(`Failed to parse issue ID from thread name ${thread.name}.`)
         return;
       }
 
-      const issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_id}', {
+      const issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}', {
         owner: parsedEnv.GITHUB_REPO_OWNER,
         repo: parsedEnv.GITHUB_REPO_NAME,
-        issue_id: issueId,
+        issue_number: issueNumber
       }).catch((e) => {
-        console.error(`Failed to fetch issue ${issueId} from GitHub API: ${e}`)
+        console.error(`Failed to fetch issue ${issueNumber} from GitHub API: ${e}`)
         return { status: 404 }
       })
 
@@ -529,10 +529,10 @@ export class DiscordHandler {
         return;
       }
 
-      await octokit.request('DELETE /repos/{owner}/{repo}/issues/{issue_id}', {
+      await octokit.request('DELETE /repos/{owner}/{repo}/issues/{issue_number}', {
         owner: parsedEnv.GITHUB_REPO_OWNER,
         repo: parsedEnv.GITHUB_REPO_NAME,
-        issue_id: issueId,
+        issue_number: issueNumber
       })
     })
 
@@ -559,7 +559,7 @@ export class DiscordHandler {
           .filter((label) => typeof label === 'string'),
       })
 
-      this.consumeUserCreatedPosts.set(issue.data.id, thread.id)
+      this.consumeUserCreatedPosts.set(issue.data.number, thread.id)
 
       await thread.setName(DiscordBuilders.issueThreadName(issue.data))
     });
@@ -989,9 +989,9 @@ export class DiscordHandler {
   public static async onIssueOpened(payload: IssueOpenedPayload) {
     const newThread = await DiscordHandler.createThreadFromIssue(payload.issue);
 
-    const consumeEntry = DiscordHandler.consumeUserCreatedPosts.get(payload.issue.id);
+    const consumeEntry = DiscordHandler.consumeUserCreatedPosts.get(payload.issue.number);
     if (consumeEntry) {
-      DiscordHandler.consumeUserCreatedPosts.delete(payload.issue.id);
+      DiscordHandler.consumeUserCreatedPosts.delete(payload.issue.number);
 
       const channel = await DiscordHandler.getChannel();
       const oldThread = await channel.threads.fetch(consumeEntry);
@@ -1007,11 +1007,11 @@ export class DiscordHandler {
         await oldThread.edit({
           archived: true,
           locked: true,
-          reason: `Issue ${payload.issue.id} created, redirecting to new thread ${newThread.id}.`,
+          reason: `Issue ${payload.issue.number} created, redirecting to new thread ${newThread.id}.`,
           name: oldThread.name.replace('issue-', 'moved-'),
         })
         await new Promise((resolve) => setTimeout(resolve, 1000 * 60 * 5));
-        await oldThread.delete(`Issue ${payload.issue.id} created, odl thread expired.`);
+        await oldThread.delete(`Issue ${payload.issue.number} created, old thread expired.`);
       }
 
     }
