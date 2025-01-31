@@ -90,6 +90,7 @@ export const initGitHub = () => {
         default:
           break;
       }
+      return;
     }
 
     if ('label' in req.body) {
@@ -106,6 +107,7 @@ export const initGitHub = () => {
         default:
           break;
       }
+      return;
     }
 
     if ('issue' in req.body) {
@@ -161,6 +163,7 @@ export const initGitHub = () => {
         default:
           break;
       }
+      return;
     }
   })
 
