@@ -115,10 +115,6 @@ export class GithubEventHandler {
 
   public async onIssueAssigned(payload: IssueAssignedPayload) {
     console.log(`Issue assigned: ${payload.issue.title}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
-      console.log(`Issue assigned by bot, ignoring.`);
-      return;
-    }
     DiscordHandler.onIssueAssigned(payload);
   }
 
@@ -142,10 +138,6 @@ export class GithubEventHandler {
 
   public async onIssueDemilestoned(payload: IssueDemilestonedPayload) {
     console.log(`Issue demilestoned: ${payload.issue.title}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
-      console.log(`Issue demilestoned by bot, ignoring.`);
-      return;
-    }
     DiscordHandler.onIssueDemilestoned(payload);
   }
 
@@ -178,10 +170,6 @@ export class GithubEventHandler {
 
   public async onIssueMilestoned(payload: IssueMilestonedPayload) {
     console.log(`Issue milestoned: ${payload.issue.title}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
-      console.log(`Issue milestoned by bot, ignoring.`);
-      return;
-    }
     DiscordHandler.onIssueMilestoned(payload);
   }
 
@@ -214,19 +202,11 @@ export class GithubEventHandler {
 
   public async onIssueTransferred(payload: IssueTransferredPayload) {
     console.log(`Issue transferred: ${payload.issue.title}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
-      console.log(`Issue transferred by bot, ignoring.`);
-      return;
-    }
     DiscordHandler.onIssueTransferred(payload);
   }
 
   public async onIssueUnassigned(payload: IssueUnassignedPayload) {
     console.log(`Issue unassigned: ${payload.issue.title}`);
-    if (GithubEventHandler.isAppUser(payload.sender)) {
-      console.log(`Issue unassigned by bot, ignoring.`);
-      return;
-    }
     DiscordHandler.onIssueUnassigned(payload);
   }
 
