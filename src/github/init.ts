@@ -152,6 +152,9 @@ const handleProcessingQueue = async () => {
   for await (const payload of sorted) {
     await processPayload(payload)
   }
+
+  processingQueue.length = 0
+  clearInterval(processingQueueInterval)
 }
 
 const addToProcessingQueue = (payload: unknown) => {
