@@ -74,7 +74,7 @@ export class DiscordBuilders {
     .setColor(Colors.Aqua)
     .setTitle(maxLengthText(issue.title, 256))
     .setURL(issue.html_url)
-    .setDescription(issue.body ?? null)
+    .setDescription(issue.body ? maxLengthText(issue.body, 2048) : null)
     .setTimestamp(new Date(issue.updated_at))
     .setImage(`https://share.mirasaki.dev/screenshot?${
       new URLSearchParams({
@@ -129,7 +129,7 @@ export class DiscordBuilders {
   static commentEmbed = (comment: IssueCommentPayload['comment']): EmbedBuilder => new EmbedBuilder()
     .setColor(Colors.Aqua)
     .setTitle("Comment created")
-    .setDescription(comment.body)
+    .setDescription(maxLengthText(comment.body, 2048))
     .setTimestamp(new Date(comment.updated_at))
     .setFooter({
       text: `Comment updated at`,
