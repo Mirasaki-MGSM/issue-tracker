@@ -59,7 +59,7 @@ export const maxLengthText = (text: string, maxLength: number): string => {
 }
 
 export class DiscordBuilders {
-  static issueThreadName = (issue: Issue): string => maxLengthText(`[issue-${issue.id}] ${issue.title}`, 100)
+  static issueThreadName = (issue: Issue): string => maxLengthText(`[issue-${issue.number}] ${issue.title}`, 100)
 
   static issueLinkButton = (issue: Issue): ButtonBuilder => new ButtonBuilder()
     .setStyle(ButtonStyle.Link)
@@ -113,8 +113,8 @@ export class DiscordBuilders {
   static issueDebugFile = (issue: Issue): AttachmentBuilder => new AttachmentBuilder(
     Buffer.from(JSON.stringify(issue, null, 2), 'utf-8')
   )
-    .setName(`issue-${issue.id}.json`)
-    .setDescription(`Debug information for issue ${issue.id}.`)
+    .setName(`issue-${issue.number}.json`)
+    .setDescription(`Debug information for issue ${issue.number}.`)
     .setSpoiler(true)
 
   static commentLinkButton = (comment: IssueCommentPayload['comment']): ButtonBuilder => new ButtonBuilder()
