@@ -99,17 +99,17 @@ export class DiscordBuilders {
     .setFields([
       {
         name: "State",
-        value: issue.state,
+        value: `${issue.state ?? 'Unknown'}`,
         inline: true,
       },
       {
         name: "Assignee",
-        value: issue.assignee ? issue.assignee.login : "None",
+        value: `${issue.assignee ? issue.assignee.login : "None"}`,
         inline: true,
       },
       {
         name: "Milestone",
-        value: issue.milestone ? issue.milestone.title : "None",
+        value: `${issue.milestone ? issue.milestone.title : "None"}`,
         inline: true,
       },
     ])
@@ -709,7 +709,7 @@ export class DiscordHandler {
     embed.setTitle("Comment edited")
     embed.addFields({
       name: "Previous content",
-      value: `\`\`\`\n${maxLengthText(payload.changes.body.from, 1024)}\n\`\`\``,
+      value: `\`\`\`\n${maxLengthText(payload.changes.body.from, 1000)}\n\`\`\``,
     })
 
     await thread.send({
