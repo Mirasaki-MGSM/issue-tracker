@@ -17,12 +17,11 @@ const {
  } = parsedEnv
 
 /**
- * Processing queue for GitHub API requests/events,
- * mapped by their ticket/issue number - not id. The reason
+ * Processing queue for GitHub API requests/events. The reason
  * for this is that on issue create, github sends the opened event,
  * but also events for milestones, labels, etc. which are not
  * guaranteed to be in order. This way, we can queue up all events
- * for a specific issue and process them in order.
+ * and process them in order.
  */
 const processingQueue: any[] = [];
 
@@ -48,20 +47,12 @@ const handleProcessingQueue = async () => {
     return a['issue']['number'] - b['issue']['number']
   }).sort((a, b) => {
     // Opened events should always be first
-    if (a['action'] === 'opened') {
-      return -1
-    }
-    if (b['action'] === 'opened') {
-      return 1
-    }
+    if (a['action'] === 'opened') return -1
+    if (b['action'] === 'opened') return 1
 
     // Closed events should always be last
-    if (a['action'] === 'closed') {
-      return 1
-    }
-    if (b['action'] === 'closed') {
-      return -1
-    }
+    if (a['action'] === 'closed') return 1
+    if (b['action'] === 'closed') return -1
 
     return 0;
   });
