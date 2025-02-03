@@ -62,7 +62,10 @@ export const maxLengthText = (text: string, maxLength: number): string => {
 
 export class DiscordBuilders {
   static issueNumberFromThreadName = (name: string): number => parseInt(name.match(/\[issue-(\d+)\]/)?.[1] ?? 'isNaN')
-  static issueThreadName = (issue: Issue): string => maxLengthText(`[issue-${issue.number}] ${issue.title}`, 100)
+  static issueThreadName = (
+    issue: Issue,
+    changes?: IssueEditedPayload['changes']
+  ): string => maxLengthText(`[issue-${issue.number}] ${changes?.title.from ?? issue.title}`, 100)
 
   static issueLinkButton = (issue: Issue): ButtonBuilder => new ButtonBuilder()
     .setStyle(ButtonStyle.Link)
@@ -588,10 +591,13 @@ export class DiscordHandler {
     return channel;
   }
 
-  static getThread = async (issue: Issue): Promise<ThreadChannel> => {
+  static getThread = async (
+    issue: Issue,
+    changes?: IssueEditedPayload['changes']
+  ): Promise<ThreadChannel> => {
     const channel = await DiscordHandler.getChannel();
     const threads = await channel.threads.fetch({}, { cache: true });
-    const thread = threads.threads.find((t) => t.name === DiscordBuilders.issueThreadName(issue));
+    const thread = threads.threads.find((t) => t.name === DiscordBuilders.issueThreadName(issue, changes));
   
     if (!thread) {
       return DiscordHandler.createThreadFromIssue(issue);
@@ -878,7 +884,7 @@ export class DiscordHandler {
   public static async onIssueEdited(payload: IssueEditedPayload) {
     const [ client, thread ] = await Promise.all([
       DiscordHandler.getClient(),
-      DiscordHandler.getThread(payload.issue),
+      DiscordHandler.getThread(payload.issue, payload.changes),
     ])
     const embed = DiscordBuilders.issueEmbed(payload.issue)
 
