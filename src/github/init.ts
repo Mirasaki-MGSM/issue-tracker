@@ -61,12 +61,15 @@ const handleProcessingQueue = async () => {
     if ('comment' in payload) {
       switch (payload.action) {
         case 'created':
+          console.log('Processing comment created')
           await GithubEventHandler.instance.onIssueCommentCreated(payload)
           break;
         case 'deleted':
+          console.log('Processing comment deleted')
           await GithubEventHandler.instance.onIssueCommentDeleted(payload)
           break;
         case 'edited':
+          console.log('Processing comment edited')
           await GithubEventHandler.instance.onIssueCommentEdited(payload)
           break;
         default:
@@ -78,12 +81,15 @@ const handleProcessingQueue = async () => {
     if ('label' in payload) {
       switch (payload.action) {
         case 'created':
+          console.log('Processing label created')
           await GithubEventHandler.instance.onLabelCreated(payload)
           break;
         case 'deleted':
+          console.log('Processing label deleted')
           await GithubEventHandler.instance.onLabelDeleted(payload)
           break;
         case 'edited':
+          console.log('Processing label edited')
           await GithubEventHandler.instance.onLabelEdited(payload)
           break;
         default:
@@ -95,51 +101,67 @@ const handleProcessingQueue = async () => {
     if ('issue' in payload) {
       switch (payload.action) {
         case 'assigned':
+          console.log('Processing issues assigned')
           await GithubEventHandler.instance.onIssueAssigned(payload)
           break;
         case 'closed':
+          console.log('Processing issues closed')
           await GithubEventHandler.instance.onIssueClosed(payload)
           break;
         case 'deleted':
+          console.log('Processing issues deleted')
           await GithubEventHandler.instance.onIssueDeleted(payload)
           break;
         case 'demilestoned':
+          console.log('Processing issues demilestoned')
           await GithubEventHandler.instance.onIssueDemilestoned(payload)
           break;
         case 'edited':
+          console.log('Processing issues edited')
           await GithubEventHandler.instance.onIssueEdited(payload)
           break;
         case 'labeled':
+          console.log('Processing issues labeled')
           await GithubEventHandler.instance.onIssueLabeled(payload)
           break;
         case 'locked':
+          console.log('Processing issues locked')
           await GithubEventHandler.instance.onIssueLocked(payload)
           break;
         case 'milestoned':
+          console.log('Processing issues milestoned')
           await GithubEventHandler.instance.onIssueMilestoned(payload)
           break;
         case 'opened':
+          console.log('Processing issues opened')
           await GithubEventHandler.instance.onIssueOpened(payload)
           break;
         case 'pinned':
+          console.log('Processing issues pinned')
           await GithubEventHandler.instance.onIssuePinned(payload)
           break;
         case 'reopened':
+          console.log('Processing issues reopened')
           await GithubEventHandler.instance.onIssueReopened(payload)
           break;
         case 'transferred':
+          console.log('Processing issues transferred')
           await GithubEventHandler.instance.onIssueTransferred(payload)
           break;
         case 'unassigned':
+          console.log('Processing issues unassigned')
           await GithubEventHandler.instance.onIssueUnassigned(payload)
           break;
         case 'unlabeled':
+          console.log('Processing issues unlabeled')
           await GithubEventHandler.instance.onIssueUnlabeled(payload)
           break;
         case 'unlocked':
+          console.log('Processing issues unlocked')
           await GithubEventHandler.instance.onIssueUnlocked(payload)
           break;
         case 'unpinned':
+          console.log('Processing issues unpinned')
           await GithubEventHandler.instance.onIssueUnpinned(payload)
           break;
         default:
