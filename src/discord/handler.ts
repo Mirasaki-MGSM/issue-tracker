@@ -898,6 +898,7 @@ export class DiscordHandler {
         name: "Previous title",
         value: maxLengthText(payload.changes.title.from, 255),
       })
+      await thread.setName(DiscordBuilders.issueThreadName(payload.issue))
     }
 
     // Note: Including this would could us over the 6000 character limit for embeds.
