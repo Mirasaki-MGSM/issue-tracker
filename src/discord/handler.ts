@@ -309,7 +309,7 @@ export class DiscordHandler {
         return;
       }
 
-      const isPrimaryThreadMessage = await oldMessage.channel.messages.fetch({ limit: 1 }).then((messages) => messages.first()?.id === oldMessage.id)
+      const isPrimaryThreadMessage = await oldMessage.channel.messages.fetch().then((messages) => messages.first()?.id === oldMessage.id)
 
       if (isPrimaryThreadMessage) {
         // Update the issue body if the primary thread message is edited. (onIssueEdited)
@@ -911,7 +911,7 @@ export class DiscordHandler {
 
     embed.setFields(fields)
 
-    const messages = await thread.messages.fetch({ limit: 1 });
+    const messages = await thread.messages.fetch();
     const firstMessage = messages.first();
 
     if (firstMessage && firstMessage.author.id === client.user.id) {
