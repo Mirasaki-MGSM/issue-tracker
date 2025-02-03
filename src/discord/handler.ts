@@ -65,7 +65,7 @@ export class DiscordBuilders {
   static issueThreadName = (
     issue: Issue,
     changes?: IssueEditedPayload['changes']
-  ): string => maxLengthText(`[issue-${issue.number}] ${changes?.title.from ?? issue.title}`, 100)
+  ): string => maxLengthText(`[issue-${issue.number}] ${changes?.title?.from ?? issue.title}`, 100)
 
   static issueLinkButton = (issue: Issue): ButtonBuilder => new ButtonBuilder()
     .setStyle(ButtonStyle.Link)
@@ -715,7 +715,7 @@ export class DiscordHandler {
     embed.setTitle("Comment edited")
     embed.addFields({
       name: "Previous content",
-      value: `\`\`\`\n${maxLengthText(payload.changes.body.from, 1000)}\n\`\`\``,
+      value: `\`\`\`\n${maxLengthText(payload.changes.body?.from ?? '', 1000)}\n\`\`\``,
     })
 
     await thread.send({
@@ -801,7 +801,7 @@ export class DiscordHandler {
       throw new Error(`Label name is required.`);
     }
 
-    await channel.setAvailableTags(channel.availableTags.map((e) => e.name === payload.changes.name.from ? {
+    await channel.setAvailableTags(channel.availableTags.map((e) => e.name === payload.changes.name?.from ? {
       name: labelName,
       moderated: true,
       id: e.id,
@@ -893,10 +893,10 @@ export class DiscordHandler {
 
     const fields = [];
 
-    if (payload.changes.title.from !== payload.issue.title) {
+    if (payload.changes.title?.from !== payload.issue.title) {
       fields.push({
         name: "Previous title",
-        value: maxLengthText(payload.changes.title.from, 255),
+        value: maxLengthText(payload.changes.title?.from ?? 'Unknown', 255),
       })
       await thread.setName(DiscordBuilders.issueThreadName(payload.issue))
     }
