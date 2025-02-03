@@ -884,17 +884,25 @@ export class DiscordHandler {
 
     embed.setColor(Colors.Yellow)
     embed.setTitle("Issue edited")
-    embed.setFields([
-      {
+
+    const fields = [];
+
+    if (payload.changes.title.from !== payload.issue.title) {
+      fields.push({
         name: "Previous title",
-        value: maxLengthText(payload.changes.title.from, 1024),
-      },
-      {
-        name: "Previous body",
-        value: maxLengthText(payload.changes.body.from, 1024),
-        inline: false,
-      },
-    ])
+        value: maxLengthText(payload.changes.title.from, 255),
+      })
+    }
+
+    // Note: Including this would could us over the 6000 character limit for embeds.
+    // if (payload.changes.body.from !== payload.issue.body) {
+    //   fields.push({
+    //     name: "Previous content",
+    //     value: maxLengthText(payload.changes.body.from, 1024),
+    //   })
+    // }
+
+    embed.setFields(fields)
 
     const messages = await thread.messages.fetch({ limit: 1 });
     const firstMessage = messages.first();
