@@ -1,4 +1,5 @@
 import { DiscordHandler } from '../discord/handler.js';
+import { parsedEnv } from '../env.js';
 import type {
   IssueAssignedPayload,
   IssueClosedPayload,
@@ -21,7 +22,8 @@ import type {
   IssueUnpinnedPayload,
   LabelCreatedPayload,
   LabelDeletedPayload,
-  LabelEditedPayload
+  LabelEditedPayload,
+  User
 } from '../types.js';
 
 export class GithubEventHandler {
@@ -36,22 +38,38 @@ export class GithubEventHandler {
 
   private constructor() {}
 
+  private static isBotAction(user: User): boolean {
+    return user.type === 'Bot';
+  }
+
   // 
   // Start Comments
   // 
 
   public async onIssueCommentCreated(payload: IssueCommentCreatedPayload) {
     console.log(`Comment created: ${payload.comment.body}`);
+    if (GithubEventHandler.isBotAction(payload.sender)) {
+      console.log(`Comment created by bot, ignoring.`);
+      return;
+    }
     DiscordHandler.onIssueCommentCreated(payload);
   }
 
   public async onIssueCommentDeleted(payload: IssueCommentDeletedPayload) {
     console.log(`Comment deleted: ${payload.comment.body}`);
+    if (GithubEventHandler.isBotAction(payload.sender)) {
+      console.log(`Comment deleted by bot, ignoring.`);
+      return;
+    }
     DiscordHandler.onIssueCommentDeleted(payload);
   }
 
   public async onIssueCommentEdited(payload: IssueCommentEditedPayload) {
     console.log(`Comment edited: ${payload.comment.body}`);
+    if (GithubEventHandler.isBotAction(payload.sender)) {
+      console.log(`Comment edited by bot, ignoring.`);
+      return;
+    }
     DiscordHandler.onIssueCommentEdited(payload);
   }
 
@@ -61,16 +79,28 @@ export class GithubEventHandler {
 
   public async onLabelCreated(payload: LabelCreatedPayload) {
     console.log(`Label created: ${payload.label.name}`);
+    if (GithubEventHandler.isBotAction(payload.sender)) {
+      console.log(`Label created by bot, ignoring.`);
+      return;
+    }
     DiscordHandler.onLabelCreated(payload);
   }
 
   public async onLabelDeleted(payload: LabelDeletedPayload) {
     console.log(`Label deleted: ${payload.label.name}`);
+    if (GithubEventHandler.isBotAction(payload.sender)) {
+      console.log(`Label deleted by bot, ignoring.`);
+      return;
+    }
     DiscordHandler.onLabelDeleted(payload);
   }
 
   public async onLabelEdited(payload: LabelEditedPayload) {
     console.log(`Label edited: ${payload.label.name}`);
+    if (GithubEventHandler.isBotAction(payload.sender)) {
+      console.log(`Label edited by bot, ignoring.`);
+      return;
+    }
     DiscordHandler.onLabelEdited(payload);
   }
 
@@ -85,11 +115,19 @@ export class GithubEventHandler {
 
   public async onIssueClosed(payload: IssueClosedPayload) {
     console.log(`Issue closed: ${payload.issue.title}`);
+    if (GithubEventHandler.isBotAction(payload.sender)) {
+      console.log(`Issue closed by bot, ignoring.`);
+      return;
+    }
     DiscordHandler.onIssueClosed(payload);
   }
 
   public async onIssueDeleted(payload: IssueDeletedPayload) {
     console.log(`Issue deleted: ${payload.issue.title}`);
+    if (GithubEventHandler.isBotAction(payload.sender)) {
+      console.log(`Issue deleted by bot, ignoring.`);
+      return;
+    }
     DiscordHandler.onIssueDeleted(payload);
   }
 
@@ -100,16 +138,28 @@ export class GithubEventHandler {
 
   public async onIssueEdited(payload: IssueEditedPayload) {
     console.log(`Issue edited: ${payload.issue.title}`);
+    if (GithubEventHandler.isBotAction(payload.sender)) {
+      console.log(`Issue edited by bot, ignoring.`);
+      return;
+    }
     DiscordHandler.onIssueEdited(payload);
   }
 
   public async onIssueLabeled(payload: IssueLabeledPayload) {
     console.log(`Issue labeled: ${payload.issue.title}`);
+    if (GithubEventHandler.isBotAction(payload.sender)) {
+      console.log(`Issue labeled by bot, ignoring.`);
+      return;
+    }
     DiscordHandler.onIssueLabeled(payload);
   }
 
   public async onIssueLocked(payload: IssueLockedPayload) {
     console.log(`Issue locked: ${payload.issue.title}`);
+    if (GithubEventHandler.isBotAction(payload.sender)) {
+      console.log(`Issue locked by bot, ignoring.`);
+      return;
+    }
     DiscordHandler.onIssueLocked(payload);
   }
 
@@ -120,16 +170,26 @@ export class GithubEventHandler {
 
   public async onIssueOpened(payload: IssueOpenedPayload) {
     console.log(`Issue opened: ${payload.issue.title}`);
+    // Note: We do want to listen to bot actions here, as we consume user-created
+    // posts in Discord, and create a GitHub issue from them.
     DiscordHandler.onIssueOpened(payload);
   }
 
   public async onIssuePinned(payload: IssuePinnedPayload) {
     console.log(`Issue pinned: ${payload.issue.title}`);
+    if (GithubEventHandler.isBotAction(payload.sender)) {
+      console.log(`Issue pinned by bot, ignoring.`);
+      return;
+    }
     DiscordHandler.onIssuePinned(payload);
   }
 
   public async onIssueReopened(payload: IssueReopenedPayload) {
     console.log(`Issue reopened: ${payload.issue.title}`);
+    if (GithubEventHandler.isBotAction(payload.sender)) {
+      console.log(`Issue reopened by bot, ignoring.`);
+      return;
+    }
     DiscordHandler.onIssueReopened(payload);
   }
 
@@ -145,16 +205,28 @@ export class GithubEventHandler {
 
   public async onIssueUnlabeled(payload: IssueUnlabeledPayload) {
     console.log(`Issue unlabeled: ${payload.issue.title}`);
+    if (GithubEventHandler.isBotAction(payload.sender)) {
+      console.log(`Issue unlabeled by bot, ignoring.`);
+      return;
+    }
     DiscordHandler.onIssueUnlabeled(payload);
   }
 
   public async onIssueUnlocked(payload: IssueUnlockedPayload) {
     console.log(`Issue unlocked: ${payload.issue.title}`);
+    if (GithubEventHandler.isBotAction(payload.sender)) {
+      console.log(`Issue unlocked by bot, ignoring.`);
+      return;
+    }
     DiscordHandler.onIssueUnlocked(payload);
   }
 
   public async onIssueUnpinned(payload: IssueUnpinnedPayload) {
     console.log(`Issue unpinned: ${payload.issue.title}`);
+    if (GithubEventHandler.isBotAction(payload.sender)) {
+      console.log(`Issue unpinned by bot, ignoring.`);
+      return;
+    }
     DiscordHandler.onIssueUnpinned(payload);
   }
 }

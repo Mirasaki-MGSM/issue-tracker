@@ -129,12 +129,6 @@ export type Reactions = {
   url: string;
 }
 
-export type SubIssueSummary = {
-  total: number;
-  completed: number;
-  percent_complete: number;
-}
-
 export type Issue = {
   active_lock_reason?: string | null | undefined;
   assignee: User | null;
@@ -338,55 +332,4 @@ export type LabelEditedPayload = LabelPayload & {
       from: string;
     };
   }
-}
-
-// [DEV] Implement sub issues
-
-export type SubIssue = {
-  id: number;
-  node_id: string;
-  url: string;
-  repository_url: string;
-  labels_url: string;
-  comments_url: string;
-  events_url: string;
-  html_url: string;
-  number: number;
-  state: string; // 'open' | 'closed';
-  state_reason?: string | null | undefined; // 'completed' | 'reopened' | 'not_planned' | null
-  title: string;
-  body?: string | null | undefined;
-  user: User | null;
-  labels: (string | Label)[];
-  assignee: User | null;
-  assignees?: User[] | null | undefined;
-  milestone: Milestone | null;
-  locked: boolean;
-  active_lock_reason?: string | null | undefined;
-  comments: number;
-  pull_request: PullRequest | null;
-  closed_at: string | null;
-  created_at: string;
-  updated_at: string;
-  draft?: boolean | undefined;
-  closed_by: User | null;
-  body_html: string | null;
-  body_text: string | null;
-  timeline_url?: string | null | undefined;
-  repository: Repository;
-  performed_via_github_app: null;
-  author_association: 'COLLABORATOR' | 'CONTRIBUTOR' | 'FIRST_TIMER' | 'FIRST_TIME_CONTRIBUTOR' | 'MANNEQUIN' | 'MEMBER' | 'NONE' | 'OWNER';
-  reactions?: Reactions | undefined;
-  sub_issues_summary: SubIssueSummary | null;
-}
-
-export type SubIssuePayload = {
-  action: 'parent_issue_added';
-  parent_issue_id: number;
-  parent_issue: Issue;
-  parent_issue_repo: Repository;
-  sub_issue_id: number;
-  sub_issue: SubIssue;
-  repository: Repository;
-  sender: User;
 }
