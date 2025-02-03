@@ -37,7 +37,16 @@ const initProcessingQueue = () => {
 }
 
 const handleProcessingQueue = async () => {
-  const sorted = processingQueue.sort((a, b) => {
+  const processingQueueCopy = [...processingQueue]
+
+  processingQueue.length = 0
+  clearInterval(processingQueueInterval)
+
+  if (processingQueueCopy.length === 0) {
+    return;
+  }
+
+  const sorted = processingQueueCopy.sort((a, b) => {
     if (typeof a['issue'] === 'undefined' || typeof b['issue'] === 'undefined') {
       return 0
     }
@@ -101,67 +110,67 @@ const handleProcessingQueue = async () => {
     if ('issue' in payload) {
       switch (payload.action) {
         case 'assigned':
-          console.log('Processing issues assigned')
+          console.log('Processing issue assigned')
           await GithubEventHandler.instance.onIssueAssigned(payload)
           break;
         case 'closed':
-          console.log('Processing issues closed')
+          console.log('Processing issue closed')
           await GithubEventHandler.instance.onIssueClosed(payload)
           break;
         case 'deleted':
-          console.log('Processing issues deleted')
+          console.log('Processing issue deleted')
           await GithubEventHandler.instance.onIssueDeleted(payload)
           break;
         case 'demilestoned':
-          console.log('Processing issues demilestoned')
+          console.log('Processing issue demilestoned')
           await GithubEventHandler.instance.onIssueDemilestoned(payload)
           break;
         case 'edited':
-          console.log('Processing issues edited')
+          console.log('Processing issue edited')
           await GithubEventHandler.instance.onIssueEdited(payload)
           break;
         case 'labeled':
-          console.log('Processing issues labeled')
+          console.log('Processing issue labeled')
           await GithubEventHandler.instance.onIssueLabeled(payload)
           break;
         case 'locked':
-          console.log('Processing issues locked')
+          console.log('Processing issue locked')
           await GithubEventHandler.instance.onIssueLocked(payload)
           break;
         case 'milestoned':
-          console.log('Processing issues milestoned')
+          console.log('Processing issue milestoned')
           await GithubEventHandler.instance.onIssueMilestoned(payload)
           break;
         case 'opened':
-          console.log('Processing issues opened')
+          console.log('Processing issue opened')
           await GithubEventHandler.instance.onIssueOpened(payload)
           break;
         case 'pinned':
-          console.log('Processing issues pinned')
+          console.log('Processing issue pinned')
           await GithubEventHandler.instance.onIssuePinned(payload)
           break;
         case 'reopened':
-          console.log('Processing issues reopened')
+          console.log('Processing issue reopened')
           await GithubEventHandler.instance.onIssueReopened(payload)
           break;
         case 'transferred':
-          console.log('Processing issues transferred')
+          console.log('Processing issue transferred')
           await GithubEventHandler.instance.onIssueTransferred(payload)
           break;
         case 'unassigned':
-          console.log('Processing issues unassigned')
+          console.log('Processing issue unassigned')
           await GithubEventHandler.instance.onIssueUnassigned(payload)
           break;
         case 'unlabeled':
-          console.log('Processing issues unlabeled')
+          console.log('Processing issue unlabeled')
           await GithubEventHandler.instance.onIssueUnlabeled(payload)
           break;
         case 'unlocked':
-          console.log('Processing issues unlocked')
+          console.log('Processing issue unlocked')
           await GithubEventHandler.instance.onIssueUnlocked(payload)
           break;
         case 'unpinned':
-          console.log('Processing issues unpinned')
+          console.log('Processing issue unpinned')
           await GithubEventHandler.instance.onIssueUnpinned(payload)
           break;
         default:
@@ -174,9 +183,6 @@ const handleProcessingQueue = async () => {
   for await (const payload of sorted) {
     await processPayload(payload)
   }
-
-  processingQueue.length = 0
-  clearInterval(processingQueueInterval)
 }
 
 const addToProcessingQueue = (payload: unknown) => {
