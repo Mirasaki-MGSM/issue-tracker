@@ -2,6 +2,8 @@
 
 Welcome to the MGSM (Game Server Monetization) platform's public issue tracker. This repository is dedicated to managing and tracking issues, feature requests, and bug reports related to the MGSM platform. We appreciate your contributions and feedback, which help us improve the platform for all users.
 
+> This repository has been archived in favor of the [MGSM Feedback Hub](https://portal.mirasaki.dev/tickets/0196682f-9e54-7b60-b093-6e53f67843a8).
+
 ## 🔖 Table of Contents
 
 - [About MGSM](#-about-mgsm)
