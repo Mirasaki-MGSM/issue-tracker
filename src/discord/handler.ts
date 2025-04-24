@@ -62,7 +62,10 @@ export const maxLengthText = (text: string, maxLength: number): string => {
 
 export class DiscordBuilders {
   static issueNumberFromThreadName = (name: string): number => parseInt(name.match(/\[issue-(\d+)\]/)?.[1] ?? 'isNaN')
-  static issueThreadName = (issue: Issue): string => maxLengthText(`[issue-${issue.number}] ${issue.title}`, 100)
+  static issueThreadName = (
+    issue: Issue,
+    changes?: IssueEditedPayload['changes']
+  ): string => maxLengthText(`[issue-${issue.number}] ${changes?.title?.from ?? issue.title}`, 100)
 
   static issueLinkButton = (issue: Issue): ButtonBuilder => new ButtonBuilder()
     .setStyle(ButtonStyle.Link)
@@ -74,7 +77,7 @@ export class DiscordBuilders {
     .setColor(Colors.Aqua)
     .setTitle(maxLengthText(issue.title, 256))
     .setURL(issue.html_url)
-    .setDescription(issue.body ?? null)
+    .setDescription(issue.body ? maxLengthText(issue.body, 2048) : null)
     .setTimestamp(new Date(issue.updated_at))
     .setImage(`https://share.mirasaki.dev/screenshot?${
       new URLSearchParams({
@@ -129,7 +132,7 @@ export class DiscordBuilders {
   static commentEmbed = (comment: IssueCommentPayload['comment']): EmbedBuilder => new EmbedBuilder()
     .setColor(Colors.Aqua)
     .setTitle("Comment created")
-    .setDescription(comment.body)
+    .setDescription(maxLengthText(comment.body, 2048))
     .setTimestamp(new Date(comment.updated_at))
     .setFooter({
       text: `Comment updated at`,
@@ -306,7 +309,7 @@ export class DiscordHandler {
         return;
       }
 
-      const isPrimaryThreadMessage = await oldMessage.channel.messages.fetch({ limit: 1 }).then((messages) => messages.first()?.id === oldMessage.id)
+      const isPrimaryThreadMessage = await oldMessage.channel.messages.fetch().then((messages) => messages.last()?.id === oldMessage.id)
 
       if (isPrimaryThreadMessage) {
         // Update the issue body if the primary thread message is edited. (onIssueEdited)
@@ -588,10 +591,13 @@ export class DiscordHandler {
     return channel;
   }
 
-  static getThread = async (issue: Issue): Promise<ThreadChannel> => {
+  static getThread = async (
+    issue: Issue,
+    changes?: IssueEditedPayload['changes']
+  ): Promise<ThreadChannel> => {
     const channel = await DiscordHandler.getChannel();
     const threads = await channel.threads.fetch({}, { cache: true });
-    const thread = threads.threads.find((t) => t.name === DiscordBuilders.issueThreadName(issue));
+    const thread = threads.threads.find((t) => t.name === DiscordBuilders.issueThreadName(issue, changes));
   
     if (!thread) {
       return DiscordHandler.createThreadFromIssue(issue);
@@ -709,7 +715,7 @@ export class DiscordHandler {
     embed.setTitle("Comment edited")
     embed.addFields({
       name: "Previous content",
-      value: `\`\`\`\n${maxLengthText(payload.changes.body.from, 1000)}\n\`\`\``,
+      value: `\`\`\`\n${maxLengthText(payload.changes.body?.from ?? '', 1000)}\n\`\`\``,
     })
 
     await thread.send({
@@ -795,7 +801,7 @@ export class DiscordHandler {
       throw new Error(`Label name is required.`);
     }
 
-    await channel.setAvailableTags(channel.availableTags.map((e) => e.name === payload.changes.name.from ? {
+    await channel.setAvailableTags(channel.availableTags.map((e) => e.name === payload.changes.name?.from ? {
       name: labelName,
       moderated: true,
       id: e.id,
@@ -878,26 +884,35 @@ export class DiscordHandler {
   public static async onIssueEdited(payload: IssueEditedPayload) {
     const [ client, thread ] = await Promise.all([
       DiscordHandler.getClient(),
-      DiscordHandler.getThread(payload.issue),
+      DiscordHandler.getThread(payload.issue, payload.changes),
     ])
     const embed = DiscordBuilders.issueEmbed(payload.issue)
 
     embed.setColor(Colors.Yellow)
     embed.setTitle("Issue edited")
-    embed.setFields([
-      {
-        name: "Previous title",
-        value: maxLengthText(payload.changes.title.from, 1024),
-      },
-      {
-        name: "Previous body",
-        value: maxLengthText(payload.changes.body.from, 1024),
-        inline: false,
-      },
-    ])
 
-    const messages = await thread.messages.fetch({ limit: 1 });
-    const firstMessage = messages.first();
+    const fields = [];
+
+    if (payload.changes.title?.from !== payload.issue.title) {
+      fields.push({
+        name: "Previous title",
+        value: maxLengthText(payload.changes.title?.from ?? 'Unknown', 255),
+      })
+      await thread.setName(DiscordBuilders.issueThreadName(payload.issue))
+    }
+
+    // Note: Including this would could us over the 6000 character limit for embeds.
+    // if (payload.changes.body.from !== payload.issue.body) {
+    //   fields.push({
+    //     name: "Previous content",
+    //     value: maxLengthText(payload.changes.body.from, 1024),
+    //   })
+    // }
+
+    embed.setFields(fields)
+
+    const messages = await thread.messages.fetch();
+    const firstMessage = messages.last();
 
     if (firstMessage && firstMessage.author.id === client.user.id) {
       return firstMessage.edit({

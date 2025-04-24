@@ -220,10 +220,10 @@ export type IssueDemilestonedPayload = IssuePayloadBase & {
 export type IssueEditedPayload = IssuePayloadBase & {
   action: 'edited';
   changes: {
-    body: {
+    body?: {
       from: string;
     };
-    title: {
+    title?: {
       from: string;
     };
   }
@@ -299,7 +299,7 @@ export type IssueCommentDeletedPayload = IssueCommentPayload & {
 export type IssueCommentEditedPayload = IssueCommentPayload & {
   action: 'edited';
   changes: {
-    body: {
+    body?: {
       from: string;
     }
   }
@@ -322,13 +322,13 @@ export type LabelDeletedPayload = LabelPayload & {
 export type LabelEditedPayload = LabelPayload & {
   action: 'edited';
   changes: {
-    color: {
+    color?: {
       from: string;
     };
-    description: {
+    description?: {
       from: string;
     };
-    name: {
+    name?: {
       from: string;
     };
   }

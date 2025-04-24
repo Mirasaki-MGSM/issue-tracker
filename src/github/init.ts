@@ -16,6 +16,183 @@ const {
   GITHUB_WEBHOOK_SECRET,
  } = parsedEnv
 
+/**
+ * Processing queue for GitHub API requests/events. The reason
+ * for this is that on issue create, github sends the opened event,
+ * but also events for milestones, labels, etc. which are not
+ * guaranteed to be in order. This way, we can queue up all events
+ * and process them in order.
+ */
+const processingQueue: any[] = [];
+
+let processingQueueInterval: NodeJS.Timeout
+const initProcessingQueue = () => {
+  if (processingQueueInterval) {
+    clearInterval(processingQueueInterval)
+  }
+
+  processingQueueInterval = setInterval(() => {
+    handleProcessingQueue()
+  }, 1000)
+}
+
+const handleProcessingQueue = async () => {
+  const processingQueueCopy = [...processingQueue]
+
+  processingQueue.length = 0
+  clearInterval(processingQueueInterval)
+
+  if (processingQueueCopy.length === 0) {
+    return;
+  }
+
+  const sorted = processingQueueCopy.sort((a, b) => {
+    if (typeof a['issue'] === 'undefined' || typeof b['issue'] === 'undefined') {
+      return 0
+    }
+    if (typeof a['issue']['number'] === 'undefined' || typeof b['issue']['number'] === 'undefined') {
+      return 0
+    }
+    return a['issue']['number'] - b['issue']['number']
+  }).sort((a, b) => {
+    // Opened events should always be first
+    if (a['action'] === 'opened') return -1
+    if (b['action'] === 'opened') return 1
+
+    // Closed events should always be last
+    if (a['action'] === 'closed') return 1
+    if (b['action'] === 'closed') return -1
+
+    return 0;
+  });
+
+  const processPayload = async (payload: any) => {
+    if ('comment' in payload) {
+      switch (payload.action) {
+        case 'created':
+          console.log('Processing comment created')
+          await GithubEventHandler.instance.onIssueCommentCreated(payload)
+          break;
+        case 'deleted':
+          console.log('Processing comment deleted')
+          await GithubEventHandler.instance.onIssueCommentDeleted(payload)
+          break;
+        case 'edited':
+          console.log('Processing comment edited')
+          await GithubEventHandler.instance.onIssueCommentEdited(payload)
+          break;
+        default:
+          break;
+      }
+      return;
+    }
+  
+    if ('label' in payload) {
+      switch (payload.action) {
+        case 'created':
+          console.log('Processing label created')
+          await GithubEventHandler.instance.onLabelCreated(payload)
+          break;
+        case 'deleted':
+          console.log('Processing label deleted')
+          await GithubEventHandler.instance.onLabelDeleted(payload)
+          break;
+        case 'edited':
+          console.log('Processing label edited')
+          await GithubEventHandler.instance.onLabelEdited(payload)
+          break;
+        default:
+          break;
+      }
+      return;
+    }
+  
+    if ('issue' in payload) {
+      switch (payload.action) {
+        case 'assigned':
+          console.log('Processing issue assigned')
+          await GithubEventHandler.instance.onIssueAssigned(payload)
+          break;
+        case 'closed':
+          console.log('Processing issue closed')
+          await GithubEventHandler.instance.onIssueClosed(payload)
+          break;
+        case 'deleted':
+          console.log('Processing issue deleted')
+          await GithubEventHandler.instance.onIssueDeleted(payload)
+          break;
+        case 'demilestoned':
+          console.log('Processing issue demilestoned')
+          await GithubEventHandler.instance.onIssueDemilestoned(payload)
+          break;
+        case 'edited':
+          console.log('Processing issue edited')
+          await GithubEventHandler.instance.onIssueEdited(payload)
+          break;
+        case 'labeled':
+          console.log('Processing issue labeled')
+          await GithubEventHandler.instance.onIssueLabeled(payload)
+          break;
+        case 'locked':
+          console.log('Processing issue locked')
+          await GithubEventHandler.instance.onIssueLocked(payload)
+          break;
+        case 'milestoned':
+          console.log('Processing issue milestoned')
+          await GithubEventHandler.instance.onIssueMilestoned(payload)
+          break;
+        case 'opened':
+          console.log('Processing issue opened')
+          await GithubEventHandler.instance.onIssueOpened(payload)
+          break;
+        case 'pinned':
+          console.log('Processing issue pinned')
+          await GithubEventHandler.instance.onIssuePinned(payload)
+          break;
+        case 'reopened':
+          console.log('Processing issue reopened')
+          await GithubEventHandler.instance.onIssueReopened(payload)
+          break;
+        case 'transferred':
+          console.log('Processing issue transferred')
+          await GithubEventHandler.instance.onIssueTransferred(payload)
+          break;
+        case 'unassigned':
+          console.log('Processing issue unassigned')
+          await GithubEventHandler.instance.onIssueUnassigned(payload)
+          break;
+        case 'unlabeled':
+          console.log('Processing issue unlabeled')
+          await GithubEventHandler.instance.onIssueUnlabeled(payload)
+          break;
+        case 'unlocked':
+          console.log('Processing issue unlocked')
+          await GithubEventHandler.instance.onIssueUnlocked(payload)
+          break;
+        case 'unpinned':
+          console.log('Processing issue unpinned')
+          await GithubEventHandler.instance.onIssueUnpinned(payload)
+          break;
+        default:
+          break;
+      }
+      return;
+    }
+  }
+
+  for await (const payload of sorted) {
+    await processPayload(payload)
+  }
+}
+
+const addToProcessingQueue = (payload: unknown) => {
+  // Note: Every time we add an item, we reset the interval, waiting
+  // for potential new items to be added. Otherwise, we might get unlucky
+  // and have the interval run just before our "opened" event is added.
+  processingQueue.push(payload)
+  initProcessingQueue()
+}
+
 export const octokit = new Octokit({
   authStrategy: createAppAuth,
   auth: {
@@ -76,95 +253,7 @@ export const initGitHub = () => {
       }
     }
 
-    if ('comment' in req.body) {
-      switch (req.body.action) {
-        case 'created':
-          GithubEventHandler.instance.onIssueCommentCreated(req.body)
-          break;
-        case 'deleted':
-          GithubEventHandler.instance.onIssueCommentDeleted(req.body)
-          break;
-        case 'edited':
-          GithubEventHandler.instance.onIssueCommentEdited(req.body)
-          break;
-        default:
-          break;
-      }
-      return;
-    }
-
-    if ('label' in req.body) {
-      switch (req.body.action) {
-        case 'created':
-          GithubEventHandler.instance.onLabelCreated(req.body)
-          break;
-        case 'deleted':
-          GithubEventHandler.instance.onLabelDeleted(req.body)
-          break;
-        case 'edited':
-          GithubEventHandler.instance.onLabelEdited(req.body)
-          break;
-        default:
-          break;
-      }
-      return;
-    }
-
-    if ('issue' in req.body) {
-      switch (req.body.action) {
-        case 'assigned':
-          GithubEventHandler.instance.onIssueAssigned(req.body)
-          break;
-        case 'closed':
-          GithubEventHandler.instance.onIssueClosed(req.body)
-          break;
-        case 'deleted':
-          GithubEventHandler.instance.onIssueDeleted(req.body)
-          break;
-        case 'demilestoned':
-          GithubEventHandler.instance.onIssueDemilestoned(req.body)
-          break;
-        case 'edited':
-          GithubEventHandler.instance.onIssueEdited(req.body)
-          break;
-        case 'labeled':
-          GithubEventHandler.instance.onIssueLabeled(req.body)
-          break;
-        case 'locked':
-          GithubEventHandler.instance.onIssueLocked(req.body)
-          break;
-        case 'milestoned':
-          GithubEventHandler.instance.onIssueMilestoned(req.body)
-          break;
-        case 'opened':
-          GithubEventHandler.instance.onIssueOpened(req.body)
-          break;
-        case 'pinned':
-          GithubEventHandler.instance.onIssuePinned(req.body)
-          break;
-        case 'reopened':
-          GithubEventHandler.instance.onIssueReopened(req.body)
-          break;
-        case 'transferred':
-          GithubEventHandler.instance.onIssueTransferred(req.body)
-          break;
-        case 'unassigned':
-          GithubEventHandler.instance.onIssueUnassigned(req.body)
-          break;
-        case 'unlabeled':
-          GithubEventHandler.instance.onIssueUnlabeled(req.body)
-          break;
-        case 'unlocked':
-          GithubEventHandler.instance.onIssueUnlocked(req.body)
-          break;
-        case 'unpinned':
-          GithubEventHandler.instance.onIssueUnpinned(req.body)
-          break;
-        default:
-          break;
-      }
-      return;
-    }
+    addToProcessingQueue(req.body)
   })
 
   app.listen(EXPRESS_PORT, () => {
